@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Countries {
+  id        Int         @id @default(autoincrement())
+  iso       String      @db.Char(2)
+  name      String
+  nicename  String
+  iso3      String?     @db.Char(3)
+  numcode   Int?
+  phonecode Int
+  districts Districts[]
+  regions   Regions[]
+  wards     Wards[]
+
+  @@map("countries")
+}
+
+model Districts {
+  districtName    String? @map("district_name")
+  districtCode    Int        @id @map("district_code")
+  watcherCount    Int?      @map("watcher_count")
+  viewCount       Int?      @map("view_count")
+  propertiesCount Int?      @map("properties_count")
+  regionId        Int?      @map("region_id")
+  countryId       Int?      @map("country_id")
+  countries        Countries? @relation(fields: [countryId], references: [id])
+  regions          Regions?   @relation(fields: [regionId], references: [regionCode])
+  wards            Wards[]
+
+  @@map("districts")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model general {
+  id           Int     @default(autoincrement())
+  region       String  @db.VarChar
+  regioncode   Int
+  district     String  @db.VarChar
+  districtcode Int
+  ward         String  @db.VarChar
+  wardcode     Int?
+  street       String? @db.VarChar
+  places       String? @db.VarChar
+  country_id   Int?
+
+  @@ignore
+}
+
+model Places {
+  id               Int     @id @default(autoincrement())
+  placeName       String? @map("place_name")
+  viewCount       Int?    @map("view_count")
+  propertiesCount Int?    @map("properties_count")
+  wardId          Int?    @map("ward_id")
+  districtId      Int?    @map("district_id")
+
+  @@map("places")
+}
+
+model Regions {
+  regionName      String?     @map("region_name")
+  regionCode      Int         @id   @map("region_code")
+  watcherCount    Int?        @map("watcher_count")
+  viewCount       Int?        @map("view_count")
+  propertiesCount Int?        @map("properties_count")
+  countryId       Int?        @map("country_id")
+  countries        Countries?  @relation(fields: [countryId], references: [id])
+  districts        Districts[]
+  wards            Wards[]
+
+  @@map("regions")
+}
+
+model Wards {
+  wardName        String?     @map("ward_name")
+  wardCode        Int        @id @map("ward_code")
+  districtId      Int?        @map("district_id")
+  regionId        Int?        @map("region_id")
+  countryId       Int?        @map("country_id")
+  viewCount       Int?        @map("view_count")
+  propertiesCount Int?        @map("properties_count")
+  countries        Countries? @relation(fields: [countryId], references: [id])
+  districts        Districts? @relation(fields: [districtId], references: [districtCode])
+  regions          Regions?   @relation(fields: [regionId], references: [regionCode])
+
+  @@map("wards")
+}
