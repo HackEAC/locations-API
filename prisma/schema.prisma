@@ -15,9 +15,7 @@ model Countries {
   iso3      String?     @db.Char(3)
   numcode   Int?
   phonecode Int
-  districts Districts[]
   regions   Regions[]
-  wards     Wards[]
 
   @@map("countries")
 }
@@ -29,28 +27,10 @@ model Districts {
   viewCount       Int?      @map("view_count")
   propertiesCount Int?      @map("properties_count")
   regionId        Int?      @map("region_id")
-  countryId       Int?      @map("country_id")
-  countries        Countries? @relation(fields: [countryId], references: [id])
   regions          Regions?   @relation(fields: [regionId], references: [regionCode])
   wards            Wards[]
 
   @@map("districts")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model general {
-  id           Int     @default(autoincrement())
-  region       String  @db.VarChar
-  regioncode   Int
-  district     String  @db.VarChar
-  districtcode Int
-  ward         String  @db.VarChar
-  wardcode     Int?
-  street       String? @db.VarChar
-  places       String? @db.VarChar
-  country_id   Int?
-
-  @@ignore
 }
 
 model Places {
@@ -58,8 +38,8 @@ model Places {
   placeName       String? @map("place_name")
   viewCount       Int?    @map("view_count")
   propertiesCount Int?    @map("properties_count")
-  wardId          Int?    @map("ward_id")
-  districtId      Int?    @map("district_id")
+  wardId          Int    @map("ward_id")
+  ward            Wards   @relation(fields: [wardId], references: [wardCode])
 
   @@map("places")
 }
@@ -73,7 +53,6 @@ model Regions {
   countryId       Int?        @map("country_id")
   countries        Countries?  @relation(fields: [countryId], references: [id])
   districts        Districts[]
-  wards            Wards[]
 
   @@map("regions")
 }
@@ -81,14 +60,11 @@ model Regions {
 model Wards {
   wardName        String?     @map("ward_name")
   wardCode        Int        @id @map("ward_code")
-  districtId      Int?        @map("district_id")
-  regionId        Int?        @map("region_id")
-  countryId       Int?        @map("country_id")
   viewCount       Int?        @map("view_count")
   propertiesCount Int?        @map("properties_count")
-  countries        Countries? @relation(fields: [countryId], references: [id])
+  districtId      Int?        @map("district_id")
   districts        Districts? @relation(fields: [districtId], references: [districtCode])
-  regions          Regions?   @relation(fields: [regionId], references: [regionCode])
+  places          Places[]
 
   @@map("wards")
 }
