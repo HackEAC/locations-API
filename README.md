@@ -6,6 +6,9 @@ Inspired by [Mtaa API](https://github.com/HackEAC/mtaaAPI/) which was built usin
 
 This is built using Prisma, NestJs & Postgresql database.
 
+## Setup
+You need to provide Postgresql environment in directory [prisma/schema.prisma](\prisma\schema.prisma)
+
 ## Running the app
 
 ```bash
