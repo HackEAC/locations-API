@@ -8,6 +8,7 @@ This is built using Prisma, NestJs & Postgresql database.
 
 ## Setup
 Create file ```.env``` then copy variables in ```sample.env```
+
 You need to provide Postgresql environment in enviroment file ```.env```
 
 ## Running the app
