@@ -90,13 +90,7 @@ Get all places -> May be a bit slow & big bodied ;-)
     curl https://locations.webongo.services/places
 
 
-NB: Postacodes referred to as CODE on the Urls above are the Postcodes
-provided by [TCRA for every
-location](https://www.tcra.go.tz/index.php/publication-and-statistics/postcode-list).
-
-
 ## Credits
 
 - [MTAA-API](https://github.com/HackEAC/mtaaAPI/)
 - [MTAA](https://github.com/Kalebu/mtaa)
-- [TCRA](https://www.tcra.go.tz/index.php/publication-and-statistics/postcode-list)
