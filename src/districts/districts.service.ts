@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from "../prisma.service"
 import { Districts, Prisma } from "@prisma/client"
 
@@ -9,7 +9,7 @@ export class DistrictsService {
   async district(
     districtUniqueInput: Prisma.DistrictsWhereUniqueInput
   ): Promise<Districts| null> {
-    return this.prisma.districts.findUnique({
+    const res = await this.prisma.districts.findUnique({
       where: districtUniqueInput,
       include: {
         regions: {
@@ -17,6 +17,12 @@ export class DistrictsService {
         }
       }
     })
+
+
+    if(!res)
+      throw new NotFoundException(`Cannot find district with ID: ${districtUniqueInput}`)
+
+    return res
   }
 
   async districts(
@@ -30,12 +36,17 @@ export class DistrictsService {
   ): Promise<Districts[]> {
     const { take, skip, where, cursor, orderBy } = params
 
-    return this.prisma.districts.findMany({
+    const res = await this.prisma.districts.findMany({
       take,
       where,
       skip,
       cursor,
       orderBy
     })
+
+    if(res.length === 0)
+      throw new NotFoundException(`Cannot find districts`)
+
+    return res
   }
 }

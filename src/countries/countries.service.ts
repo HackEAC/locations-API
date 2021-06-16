@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "../prisma.service"
 import { Prisma, Countries } from "@prisma/client"
 
@@ -9,9 +9,14 @@ export class CountriesService {
   async country(
     countryWhereUniqueInput: Prisma.CountriesWhereUniqueInput
   ): Promise<Countries | null> {
-    return this.prisma.countries.findUnique({
+    const res = await this.prisma.countries.findUnique({
       where: countryWhereUniqueInput
     })
+
+    if(!res) 
+      throw new NotFoundException(`Cannot find country with ID: ${countryWhereUniqueInput}`)
+
+    return res
   }
 
   async countries(
@@ -25,12 +30,17 @@ export class CountriesService {
   ): Promise<Countries[]> {
     const { take, skip, cursor, where, orderBy } = params
 
-    return this.prisma.countries.findMany({
+    const res = await this.prisma.countries.findMany({
       where,
       skip,
       cursor,
       orderBy,
       take
     })
+
+    if(res.length === 0) 
+      throw new NotFoundException("Cannot find countries")
+
+    return res
   }
 }

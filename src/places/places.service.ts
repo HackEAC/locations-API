@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from "../prisma.service"
 import { Places, Prisma } from "@prisma/client"
 
@@ -9,7 +9,12 @@ export class PlacesService {
   async place(
     placeWhereUniqueInput: Prisma.PlacesWhereUniqueInput
   ): Promise<Places | null> {
-    return this.prisma.places.findUnique({where: placeWhereUniqueInput})
+    const res = await this.prisma.places.findUnique({where: placeWhereUniqueInput})
+
+    if(!res)
+      throw new NotFoundException(`Cannot find place with ID: ${placeWhereUniqueInput}`)
+
+    return res
   }
 
   async places(
@@ -23,13 +28,18 @@ export class PlacesService {
   ): Promise<Places[]> {
     const { take, skip, cursor, where, orderBy } = params
 
-    return this.prisma.places.findMany({
+    const res = await this.prisma.places.findMany({
       take,
       skip,
       cursor,
       orderBy,
       where
     })
+
+    if(res.length === 0)
+      throw new NotFoundException("Cannot find places")
+
+    return res
   }
 
 }

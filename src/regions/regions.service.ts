@@ -10,10 +10,15 @@ export class RegionsService {
     regionWhereUniqueInput: Prisma.RegionsWhereUniqueInput
   ): Promise<Regions | null> {
 
-    return this.prisma.regions.findUnique({
+    const res = await this.prisma.regions.findUnique({
       where: regionWhereUniqueInput,
       include: { countries: true }
     })
+
+    if(!res) 
+      throw new NotFoundException(`Cannot find region with ID: ${regionWhereUniqueInput}`)
+
+    return res
   }
 
   async regions(params: {
@@ -25,12 +30,17 @@ export class RegionsService {
   }): Promise<Regions[]> {
 
     const {take, skip, cursor, orderBy, where} = params
-    return this.prisma.regions.findMany({
+    const res = await this.prisma.regions.findMany({
       skip,
       take,
       cursor,
       orderBy,
       where
     })
+
+    if(res.length === 0) 
+      throw new NotFoundException(`Cannot find regions`)
+
+    return res
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from "../prisma.service"
 import { Wards, Prisma } from "@prisma/client"
 
@@ -9,7 +9,7 @@ export class WardsService {
   async ward(
     wardWhereUniqueInput: Prisma.WardsWhereUniqueInput
   ): Promise<Wards | null> {
-    return this.prisma.wards.findUnique({
+    const res = await this.prisma.wards.findUnique({
       where: wardWhereUniqueInput,
       include: {
         districts: {
@@ -23,6 +23,11 @@ export class WardsService {
         }
       }
     })
+
+    if(!res)
+      throw new NotFoundException(`Cannot find ward with ID: ${wardWhereUniqueInput}`)
+
+    return res
   }
 
   async wards(
@@ -35,12 +40,17 @@ export class WardsService {
     }): Promise<Wards[]> {
       const { take, skip, where, orderBy, cursor } = params
 
-      return this.prisma.wards.findMany({
+      const res = await this.prisma.wards.findMany({
         take,
         skip,
         where,
         orderBy,
         cursor
       })
+
+      if(res.length === 0)
+        throw new NotFoundException(`Cannot find wards`)
+
+      return res
     }
 }
