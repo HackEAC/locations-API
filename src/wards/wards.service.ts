@@ -10,7 +10,18 @@ export class WardsService {
     wardWhereUniqueInput: Prisma.WardsWhereUniqueInput
   ): Promise<Wards | null> {
     return this.prisma.wards.findUnique({
-      where: wardWhereUniqueInput
+      where: wardWhereUniqueInput,
+      include: {
+        districts: {
+          include: {
+            regions: {
+              include: {
+                countries: true
+              }
+            }
+          }
+        }
+      }
     })
   }
 

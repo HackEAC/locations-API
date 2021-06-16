@@ -11,7 +11,8 @@ export class RegionsService {
   ): Promise<Regions | null> {
 
     return this.prisma.regions.findUnique({
-      where: regionWhereUniqueInput
+      where: regionWhereUniqueInput,
+      include: { countries: true }
     })
   }
 

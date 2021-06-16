@@ -9,7 +9,14 @@ export class DistrictsService {
   async district(
     districtUniqueInput: Prisma.DistrictsWhereUniqueInput
   ): Promise<Districts| null> {
-    return this.prisma.districts.findUnique({where: districtUniqueInput})
+    return this.prisma.districts.findUnique({
+      where: districtUniqueInput,
+      include: {
+        regions: {
+          include: { countries: true }
+        }
+      }
+    })
   }
 
   async districts(
