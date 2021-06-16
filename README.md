@@ -65,7 +65,7 @@ Available locations
 
 3. The same applies to Districts, Wards & Places
 
-4. Search
+4. Search (POST request)
 
     https://locations.webongo.services/search searchText=n
 
@@ -99,6 +99,11 @@ Get all wards
 Get all places -> May be a bit slow & big bodied ;-)
 
     curl https://locations.webongo.services/places
+
+Search a Location
+
+    curl -X POST -d 'searchText=mtakuja'
+    https://locations.webongo.services/search
 
 
 ## Credits
