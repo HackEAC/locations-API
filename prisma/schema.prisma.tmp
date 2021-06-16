@@ -29,8 +29,8 @@ model Districts {
   regionId        Int?      @map("region_id")
   regions          Regions?   @relation(fields: [regionId], references: [regionCode])
   wards            Wards[]
-  general_locations_id            Int?
-  general              General?   @relation("districtsTogeneral", fields: [general_locations_id], references: [id])
+  generalId            Int?
+  general              General?   @relation("districtsTogeneral", fields: [generalId], references: [id])
   country_id           Int?
   countries            Countries? @relation("countriesTodistricts", fields: [country_id], references: [id])
 
@@ -43,8 +43,8 @@ model Places {
   propertiesCount Int?    @map("properties_count")
   wardId          Int    @map("ward_id")
   ward            Wards   @relation(fields: [wardId], references: [wardCode])
-  general_locations_id       Int?
-  general         General? @relation("generalToplaces", fields: [general_locations_id], references: [id])
+  generalId       Int?
+  general         General? @relation("generalToplaces", fields: [generalId], references: [id])
   country_id           Int?
 
   @@map("places")
@@ -57,8 +57,8 @@ model Regions {
   countryId         Int?        @map("country_id")
   countries         Countries?  @relation(fields: [countryId], references: [id])
   districts         Districts[]
-  general_locations_id         Int?        @map("general_locations_id")
-  general           General?    @relation("generalToregions", fields: [general_locations_id], references: [id])
+  generalId         Int?        @map("general_id")
+  general           General?    @relation("generalToregions", fields: [generalId], references: [id])
 
   @@map("regions")
 }
@@ -70,8 +70,8 @@ model Wards {
   districtId      Int?        @map("district_id")
   districts       Districts? @relation(fields: [districtId], references: [districtCode])
   places          Places[]
-  general_locations_id         Int?
-  general              General?   @relation("generalTowards", fields: [general_locations_id], references: [id])
+  generalId         Int?
+  general              General?   @relation("generalTowards", fields: [generalId], references: [id])
   country_id           Int?
   countries            Countries? @relation("countriesTowards", fields: [country_id], references: [id])
 
