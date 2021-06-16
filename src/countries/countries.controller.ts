@@ -26,7 +26,7 @@ export class CountriesController {
     })
   }
 
-  @Get("id")
+  @Get(":id")
   async getCountryById(@Param("id") id: string): Promise<CountriesModel> {
     return this.countriesService.country({id: +id})
   }
