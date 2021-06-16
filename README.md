@@ -63,7 +63,18 @@ Available locations
 
     http://locations.webongo.services/regions/name/REGION_NAME
 
-3. Districts, Wards & Places
+3. The same applies to Districts, Wards & Places
+
+4. Search
+
+    https://locations.webongo.services/search searchText=n
+
+    (n.length >= 3)
+
+5. Whatever you query by id (Regions, Districts, Wards, Places)
+    
+you get it's discending location roots using Prisma relations.
+
 
 The syntax is the same for other objects
 
@@ -93,4 +104,5 @@ Get all places -> May be a bit slow & big bodied ;-)
 ## Credits
 
 - [MTAA-API](https://github.com/HackEAC/mtaaAPI/)
-- [MTAA](https://github.com/Kalebu/mtaa)
+- [MTAA Python Package](https://github.com/Kalebu/mtaa)
+- [Tanzania Locations DB](https://github.com/HackEAC/tanzania-locations-db/)
