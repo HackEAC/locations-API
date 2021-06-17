@@ -82,7 +82,7 @@ Replace `regions` with `districts`, `wards` & `places` to get the specific
 location you want.
 
 
-## Examples 
+## Live Examples 
 
 Get all regions
 
