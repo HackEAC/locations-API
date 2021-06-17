@@ -1,6 +1,6 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from "@nestjs/common"
-import { AppModule } from './app.module';
+import { AppModule } from './app.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,6 +9,7 @@ async function bootstrap() {
     transform: true,
     forbidNonWhitelisted: true
   }))
-  await app.listen(3000);
+  app.enableCors()
+  await app.listen(3000)
 }
-bootstrap();
+bootstrap()
