@@ -30,6 +30,31 @@ export class WardsService {
     return res
   }
 
+  async wardWithPlaces(
+    wardWhereUniqueInput: Prisma.WardsWhereUniqueInput
+  ): Promise<any> {
+    const res = await this.prisma.wards.findUnique({
+      where: wardWhereUniqueInput,
+      include: {
+        places: true,
+        districts: {
+          include: {
+            regions: {
+              include: {
+                countries: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if(!res)
+      throw new NotFoundException(`Cannot find ward with ID: ${wardWhereUniqueInput}`)
+
+    return res
+  }
+
   async wards(
     params: {
       take?: number;

@@ -20,4 +20,9 @@ export class WardsController {
   async getWardById(@Param("wardCode") wardCode: string): Promise<WardsModel> {
     return this.wardsService.ward({wardCode: +wardCode})
   }
+
+  @Get(":wardCode/places")
+  async getWardByIdWithPlaces(@Param("wardCode") wardCode: string): Promise<any> {
+    return this.wardsService.wardWithPlaces({wardCode: +wardCode})
+  }
 }

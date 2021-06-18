@@ -16,6 +16,11 @@ export class RegionsController {
     return this.regionsSerice.region({regionCode: Number(regionCode)})
   }
 
+  @Get(":regionCode/districts")
+  async getRegionByIdWithDistricts(@Param("regionCode") regionCode: string): Promise<any[]> {
+    return this.regionsSerice.regionWithDistricts({regionCode: Number(regionCode)})
+  }
+
   @Get("name/:regionName")
   async getRegionByName(@Param("regionName") regionName: string): Promise<RegionsModel[]> {
     return this.regionsSerice.regions({where: {regionName}})

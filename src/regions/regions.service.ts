@@ -21,6 +21,20 @@ export class RegionsService {
     return res
   }
 
+  async regionWithDistricts(
+    regionWhereUniqueInput: Prisma.RegionsWhereUniqueInput
+  ): Promise<any> {
+    const res = await this.prisma.regions.findUnique({
+      where: regionWhereUniqueInput,
+      include: { countries: true, districts: true }
+    })
+
+    if(!res) 
+      throw new NotFoundException(`Cannot find region with ID: ${regionWhereUniqueInput}`)
+
+    return res
+  }
+
   async regions(params: {
     take?: number;
     skip?: number;

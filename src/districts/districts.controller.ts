@@ -20,4 +20,9 @@ export class DistrictsController {
   async getDistrictsById(@Param("id") id: string): Promise<DistrictModel> {
     return this.districtsService.district({districtCode: +id})
   }
+
+  @Get(":id/wards")
+  async getDistrictsByIdWithWards(@Param("id") id: string): Promise<DistrictModel> {
+    return this.districtsService.districtWithWards({districtCode: +id})
+  }
 }
