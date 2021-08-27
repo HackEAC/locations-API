@@ -1,10 +1,13 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { RegionsService } from "./regions.service"
+import { RegionsSearchService, RegionsService } from "./regions.service"
 import { Regions as RegionsModel } from "@prisma/client"
 
 @Controller('regions')
 export class RegionsController {
-  constructor (private readonly regionsSerice: RegionsService) {}
+  constructor (
+    private readonly regionsSerice: RegionsService,
+    private readonly regionsSearchService: RegionsSearchService
+  ) {}
 
   @Get()
   getAllRegions(): Promise<RegionsModel[]> {
@@ -25,4 +28,10 @@ export class RegionsController {
   async getRegionByName(@Param("regionName") regionName: string): Promise<RegionsModel[]> {
     return this.regionsSerice.regions({where: {regionName}})
   }
+
+  @Get("search/:searchText")
+  async searchRegions(@Param('searchText') searchText) {
+    return this.regionsSearchService.search(searchText)
+  }
+
 }

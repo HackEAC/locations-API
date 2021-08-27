@@ -1,10 +1,13 @@
 import { Get, Param, Controller } from '@nestjs/common';
-import { DistrictsService } from "./districts.service"
+import { DistrictSearchService, DistrictsService } from "./districts.service"
 import { Districts as DistrictModel } from "@prisma/client"
 
 @Controller('districts')
 export class DistrictsController {
-  constructor(private readonly districtsService: DistrictsService){}
+  constructor(
+    private readonly districtsService: DistrictsService,
+    private readonly districtsSearchService: DistrictSearchService
+  ){}
 
   @Get()
   async getAllDistricts(): Promise<DistrictModel[]> {
@@ -25,4 +28,10 @@ export class DistrictsController {
   async getDistrictsByIdWithWards(@Param("id") id: string): Promise<DistrictModel> {
     return this.districtsService.districtWithWards({districtCode: +id})
   }
+
+  @Get("search/:searchText")
+  async searchDistricts(@Param('searchText') searchText) {
+    return this.districtsSearchService.search(searchText)
+  }
+
 }

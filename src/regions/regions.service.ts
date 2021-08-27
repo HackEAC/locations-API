@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpException, HttpStatus  } from '@nestjs/common';
 import { PrismaService } from "../prisma.service"
 import { Regions, Prisma } from "@prisma/client"
 
@@ -56,5 +56,36 @@ export class RegionsService {
       throw new NotFoundException(`Cannot find regions`)
 
     return res
+  }
+}
+
+@Injectable()
+export class RegionsSearchService {
+  constructor(private prisma: PrismaService) {};
+
+  async search(
+    searchInput: String
+  ): Promise<any | null> {
+
+    if(searchInput.length >= 3) {
+     const res = await this.prisma.regions.findMany({
+       where: {
+         regionName: {
+           search: `${searchInput}:*`
+         }
+       },
+       include: {
+         countries: true
+       }
+     })
+
+      if(res.length <= 0) {
+        throw new NotFoundException(`No region found matching: ${searchInput}`)
+      }
+
+      return res
+    }
+
+    throw new HttpException(`Cannot search with less that 3 characters.`, HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
   }
 }
