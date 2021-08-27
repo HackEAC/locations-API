@@ -1,10 +1,13 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { Wards as WardsModel } from "@prisma/client"
-import { WardsService } from "./wards.service"
+import { WardsService, WardsSearchService } from "./wards.service"
 
 @Controller('wards')
 export class WardsController {
-  constructor(private readonly wardsService: WardsService) {}
+  constructor(
+    private readonly wardsService: WardsService,
+    private readonly wardsSearchService: WardsSearchService
+  ) {}
 
   @Get()
   async getWards(): Promise<WardsModel[]> {
@@ -24,5 +27,10 @@ export class WardsController {
   @Get(":wardCode/places")
   async getWardByIdWithPlaces(@Param("wardCode") wardCode: string): Promise<any> {
     return this.wardsService.wardWithPlaces({wardCode: +wardCode})
+  }
+
+  @Get("search/:searchText")
+  async searchWards(@Param('searchText') searchText) {
+    return this.wardsSearchService.search(searchText)
   }
 }

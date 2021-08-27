@@ -1,10 +1,13 @@
 import { Get, Param, Controller } from '@nestjs/common';
 import { Places as PlacesModel } from "@prisma/client"
-import { PlacesService } from "./places.service"
+import { PlacesService, PlacesSearchService } from "./places.service"
 
 @Controller('places')
 export class PlacesController {
-  constructor(private readonly placesService: PlacesService){}
+  constructor(
+    private readonly placesService: PlacesService,
+    private readonly placesSearchService: PlacesSearchService
+  ){}
 
   @Get()
   async getPlaces() {
@@ -23,4 +26,8 @@ export class PlacesController {
     return this.placesService.place({id: +id})
   }
 
+  @Get("search/:searchText")
+  async searchPlaces(@Param('searchText') searchText) {
+    return this.placesSearchService.search(searchText)
+  }
 }

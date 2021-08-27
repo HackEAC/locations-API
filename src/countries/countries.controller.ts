@@ -1,10 +1,13 @@
 import { Get, Param, Controller } from '@nestjs/common'
-import { CountriesService } from "./countries.service"
+import { CountriesService, CountriesSearchService } from "./countries.service"
 import { Countries as CountriesModel } from "@prisma/client"
 
 @Controller('countries')
 export class CountriesController {
-  constructor(private readonly countriesService: CountriesService){}
+  constructor(
+    private readonly countriesService: CountriesService,
+    private readonly countriesSearchService: CountriesSearchService,
+  ){}
 
 
   @Get()
@@ -29,5 +32,10 @@ export class CountriesController {
   @Get(":id")
   async getCountryById(@Param("id") id: string): Promise<CountriesModel> {
     return this.countriesService.country({id: +id})
+  }
+
+  @Get("search/:searchText")
+  async getCountriesSearch(@Param("searchText") searchText: string) {
+    return this.countriesSearchService.search(searchText)
   }
 }
