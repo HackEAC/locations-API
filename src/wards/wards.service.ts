@@ -108,11 +108,17 @@ export class WardsSearchService {
        }
      })
 
-      if(res.length <= 0) {
-        throw new NotFoundException(`No ward found matching: ${searchInput}`)
-      }
+     if(res.length <= 0) {
+       throw new NotFoundException(`No ward found matching: ${searchInput}`)
+     }
 
-      return res
+     const responses = res.map(response => ({
+       locationType: "ward",
+       locationName: response.wardName,
+       locationObject: response
+     }))
+
+     return responses
     }
 
     throw new HttpException(`Cannot search with less that 3 characters.`, HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)

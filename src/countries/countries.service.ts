@@ -54,14 +54,12 @@ export class CountriesSearchService {
   ): Promise<any | null> {
 
     if(searchInput.length >= 3) {
+
      const res = await this.prisma.countries.findMany({
        where: {
          nicename: {
            search: `${searchInput}:*`
          }
-       },
-       include: {
-         regions: true,
        }
      })
 
@@ -69,7 +67,13 @@ export class CountriesSearchService {
         throw new NotFoundException(`No district found matching: ${searchInput}`)
       }
 
-      return res
+      const responses = res.map(response => ({
+        locationType: "country",
+        locationName: response.nicename,
+        locationObject: response
+      }))
+
+      return responses
     }
 
     throw new HttpException(`Cannot search with less that 3 characters.`, HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)

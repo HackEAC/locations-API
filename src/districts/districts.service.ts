@@ -92,11 +92,17 @@ export class DistrictSearchService {
        }
      })
 
-      if(res.length <= 0) {
-        throw new NotFoundException(`No district found matching: ${searchInput}`)
-      }
+     if(res.length <= 0) {
+       throw new NotFoundException(`No district found matching: ${searchInput}`)
+     }
 
-      return res
+     const responses = res.map(response => ({
+       locationType: "district",
+       locationName: response.districtName,
+       locationObject: response
+     }))
+
+      return responses
     }
 
     throw new HttpException(`Cannot search with less that 3 characters.`, HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
