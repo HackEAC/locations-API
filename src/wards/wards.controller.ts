@@ -1,6 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { Wards as WardsModel } from "@prisma/client"
 import { WardsService, WardsSearchService } from "./wards.service"
+import { searchResults as searchResultsInterface } from "../types/search"
 
 @Controller('wards')
 export class WardsController {
@@ -30,7 +31,7 @@ export class WardsController {
   }
 
   @Get("search/:searchText")
-  async searchWards(@Param('searchText') searchText) {
+  async searchWards(@Param('searchText') searchText) : Promise<searchResultsInterface>{
     return this.wardsSearchService.search(searchText)
   }
 }

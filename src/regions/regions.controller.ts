@@ -1,6 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { RegionsSearchService, RegionsService } from "./regions.service"
 import { Regions as RegionsModel } from "@prisma/client"
+import { searchResults as searchResultsInterface } from "../types/search"
 
 @Controller('regions')
 export class RegionsController {
@@ -30,7 +31,7 @@ export class RegionsController {
   }
 
   @Get("search/:searchText")
-  async searchRegions(@Param('searchText') searchText) {
+  async searchRegions(@Param('searchText') searchText) : Promise<searchResultsInterface> {
     return this.regionsSearchService.search(searchText)
   }
 
