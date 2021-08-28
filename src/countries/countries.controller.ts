@@ -1,6 +1,7 @@
 import { Get, Param, Controller } from '@nestjs/common'
 import { CountriesService, CountriesSearchService } from "./countries.service"
 import { Countries as CountriesModel } from "@prisma/client"
+import { searchResults as searchResultsInterface } from "../types/search"
 
 @Controller('countries')
 export class CountriesController {
@@ -35,7 +36,7 @@ export class CountriesController {
   }
 
   @Get("search/:searchText")
-  async getCountriesSearch(@Param("searchText") searchText: string) {
+  async getCountriesSearch(@Param("searchText") searchText: string) : Promise<searchResultsInterface> {
     return this.countriesSearchService.search(searchText)
   }
 }
