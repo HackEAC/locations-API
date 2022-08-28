@@ -15,6 +15,9 @@ You need to provide Postgresql environment in enviroment file ```.env```
 ## Running the app
 
 ```bash
+# install dependencies
+$ npm install
+
 # development
 $ npm run start
 
