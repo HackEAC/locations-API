@@ -31,7 +31,7 @@ export class RegionsController {
   }
 
   @Get("search/:searchText")
-  async searchRegions(@Param('searchText') searchText) : Promise<searchResultsInterface> {
+  async searchRegions(@Param('searchText') searchText:string) : Promise<searchResultsInterface> {
     return this.regionsSearchService.search(searchText)
   }
 
