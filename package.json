@@ -9,5 +9,17 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.7.0"
+  "packageManager": "pnpm@10.7.0",
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.0",
+    "prisma": "^6.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
 }
