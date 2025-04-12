@@ -26,10 +26,7 @@ model Countries {
 model Districts {
   districtName         String?    @map("district_name")
   districtCode         Int        @id @map("district_code")
-  watcher_count        Int?
-  view_count           Int?
   general_locations_id Int?
-  propertiesCount      Int?       @map("properties_count")
   regionId             Int?       @map("region_id")
   country_id           Int?
   countries            Countries? @relation("countriesTodistricts", fields: [country_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -43,8 +40,6 @@ model Districts {
 model Places {
   id                   Int      @id @default(autoincrement())
   placeName            String?  @map("place_name")
-  view_count           Int?
-  propertiesCount      Int?     @map("properties_count")
   wardId               Int?     @map("ward_id")
   district_id          Int?
   region_id            Int?
@@ -58,10 +53,7 @@ model Places {
 model Regions {
   regionName           String?     @map("region_name")
   regionCode           Int         @id @map("region_code")
-  watcher_count        Int?
-  view_count           Int?
   general_locations_id Int?        @map("general_locations_id")
-  propertiesCount      Int?        @map("properties_count")
   countryId            Int?        @map("country_id")
   districts            Districts[]
   countries            Countries?  @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -77,8 +69,6 @@ model Wards {
   districtId           Int?       @map("district_id")
   region_id            Int?
   country_id           Int?
-  view_count           Int?
-  propertiesCount      Int?       @map("properties_count")
   general_locations_id Int?
   countries            Countries? @relation("countriesTowards", fields: [country_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   districts            Districts? @relation(fields: [districtId], references: [districtCode], onDelete: NoAction, onUpdate: NoAction)

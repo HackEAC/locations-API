@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --experimental-strip-types --watch src/index.ts",
+    "dev:watch": "ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +20,6 @@
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0",
     "prisma": "^6.6.0",
-    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }
