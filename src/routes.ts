@@ -153,7 +153,7 @@ router.get('/regions/:regionCode', validate({ params: codeParamSchema.pick({ reg
       }
     });
     
-    if (!region) {
+    if (!region || Object.keys(region).length === 0) {
       throw new ApiError(404, 'Region not found');
     }
     
@@ -486,6 +486,10 @@ router.get('/countries/:countryCode/regions', async (req, res, next) => {
       where: { countryId: countryCode },
       orderBy: { regionName: 'asc' }
     });
+
+    if(!regions || regions.length === 0) {
+      throw new ApiError(404, 'No regions found for this country');
+    }
     res.json({ data: regions });
   } catch (error) {
     next(error);
@@ -503,6 +507,10 @@ router.get('/regions/:regionCode/districts', async (req, res, next) => {
       where: { regionId: regionCode },
       orderBy: { districtName: 'asc' }
     });
+
+    if(!districts || districts.length === 0) {
+      throw new ApiError(404, 'No districts found for this region');
+    }
     res.json({ data: districts });
   } catch (error) {
     next(error);
@@ -520,6 +528,10 @@ router.get('/districts/:districtCode/wards', async (req, res, next) => {
       where: { districtId: districtCode },
       orderBy: { wardName: 'asc' }
     });
+
+    if(!wards || wards.length === 0) {
+      throw new ApiError(404, 'No wards found for this district');
+    }
     res.json({ data: wards });
   } catch (error) {
     next(error);
@@ -538,6 +550,10 @@ router.get('/wards/:wardCode/places', async (req, res, next) => {
       where: { wardId: wardCode },
       orderBy: { placeName: 'asc' }
     });
+
+    if(!places || places.length === 0) {
+      throw new ApiError(404, 'No places found for this ward');
+    }
     res.json({ data: places });
   } catch (error) {
     next(error);

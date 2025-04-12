@@ -5,10 +5,23 @@
   "main": "./dist/server.js",
   "scripts": {
     "dev": "node --experimental-strip-types --watch ./src/app.ts",
-    "build": "tsc",
-    "start": "node ./dist/server.js"
+    "generate": "prisma generate --no-engine",
+    "generate:ci": "prisma generate",
+    "build:ci": "npm run generate:ci && tsc --noEmit",
+    "build": "npm run generate && tsc",
+    "start": "node ./dist/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
-  "keywords": ["Tanzania", "locations", "API", "regions", "districts", "wards", "places"],
+  "keywords": [
+    "Tanzania",
+    "locations",
+    "API",
+    "regions",
+    "districts",
+    "wards",
+    "places"
+  ],
   "author": "HackEAC",
   "license": "copyleft",
   "packageManager": "pnpm@10.7.0",
@@ -27,11 +40,16 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.14.0",
+    "@types/supertest": "^6.0.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "jest": "^29.7.0",
     "prisma": "^6.6.0",
+    "supertest": "^7.1.0",
+    "ts-jest": "^29.3.1",
     "typescript": "^5.8.3"
   }
 }
