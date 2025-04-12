@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { RequestHandler } from 'express';
 import { ZodSchema, ZodError } from 'zod';
 
 export const validate = (schemas: {
@@ -12,7 +12,7 @@ export const validate = (schemas: {
       if (schemas.query) req.validatedQuery = schemas.query.parse(req.query);
       if (schemas.params) req.validatedParams = schemas.params.parse(req.params);
 
-      next(); // ✅ just call next
+      next();
     } catch (err) {
       if (err instanceof ZodError) {
         res.status(400).json({
@@ -21,7 +21,7 @@ export const validate = (schemas: {
             validationErrors: err.errors,
           },
         });
-        return; // ✅ ensure we don't fall through
+        return;
       }
 
       res.status(500).json({
@@ -30,7 +30,7 @@ export const validate = (schemas: {
           stack: err instanceof Error ? err.stack : undefined,
         },
       });
-      return; // ✅ same here
+      return;
     }
   };
 };

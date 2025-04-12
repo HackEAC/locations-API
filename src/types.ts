@@ -1,6 +1,5 @@
 import { z, ZodIssue } from 'zod';
 
-// Zod schemas for validation
 export const paginationSchema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().positive().max(100).optional().default(10),
@@ -17,12 +16,10 @@ export const codeParamSchema = z.object({
   wardCode: z.coerce.number().int().positive(),
 });
 
-// Types derived from Zod schemas
 export type IdParam = z.infer<typeof idParamSchema>;
 export type CodeParam = z.infer<typeof codeParamSchema>;
 export type PaginationQuery = z.infer<typeof paginationSchema>;
 
-// Response types for better type safety
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
@@ -46,7 +43,6 @@ export interface ErrorResponse {
   };
 }
 
-// Types for extending Express Request
 declare global {
   namespace Express {
     interface Request<
