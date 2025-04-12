@@ -1,6 +1,6 @@
 # Location Data API
 
-A RESTful API for geographical location data including countries, regions, districts, wards, and places.
+A RESTful API for Tanzania location data including countries, regions, districts, wards, and places.
 
 ## Features
 
@@ -20,47 +20,81 @@ A RESTful API for geographical location data including countries, regions, distr
 
 ### Prerequisites
 
-- Node.js (v16+)  
-- PostgreSQL  
+- Node.js LTS  
+- [Tanzania Locations Database](https://github.com/HackEAC/tanzania-locations-db) running 🏃🏿‍♂️🏃🏿‍♀️  
 - npm or yarn  
 
 ### Installation
 
 1. Clone the repository
-```bash
-git clone https://github.com/yourusername/location-data-api.git
-cd location-data-api
-```
+
+   ```bash
+   git clone https://github.com/yourusername/locations-API.git
+   cd locations-API
+   ```
 
 2. Install dependencies
 
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Create .env for your environment 
+3. Create `.env` for your environment
 
-```bash
-cp .env.example .env.local
-```
+   ```bash
+   echo DATABASE_URL="postgresql://postgres:password@localhost:5433/locations" > .env
+   ```
 
-4. Configure your local PostgreSQL database in `.env` (or whereever you
-   want to put it)
+   The above `DATABASE_URL` is for the [Tanzania-locations-database](https://github.com/HackEAC/tanzania-locations-db) Docker container provision.
 
-```env
-DATABASE_URL="postgresql://username:password@localhost:5432/location_db"
-```
+4. Sync up your API with the locations database:
 
-5. Run migrations to set up the database
+   - **a.** Pull existing DB schema into your Prisma schema
 
-```bash
-npx prisma migrate dev --name init
-```
-6. Start dev server
+     ```bash
+     pnpx prisma db pull
+     ```
 
-```bash
-npm run dev
-```
+   - **b.** Create migration init files
+
+     ```bash
+     mkdir prisma/migrations/init
+     ```
+
+   - **c.** Mark the current schema as baseline
+
+     ```bash
+     pnpx prisma migrate diff \
+       --from-empty \
+       --to-schema-datamodel prisma/schema.prisma \
+       --script > prisma/migrations/init/migration.sql
+     ```
+
+   - **d.** Create migration history manually
+
+     ```bash
+     pnpx prisma migrate resolve --applied init
+     ```
+
+   ✅ Now you're synced! Future `prisma migrate dev` or `migrate deploy` will work cleanly.
+
+5. Start development server
+
+   ```bash
+   npm run dev
+   ```
+
+6. Build application
+
+   ```bash
+   npm run build
+   ```
+
+7. Start production server
+
+   ```bash
+   npm run start
+   ```
 
 ## API Endpoints
 
@@ -88,9 +122,11 @@ npm run dev
 - `GET /api/places/:id` - Get place by ID
 
 ## Running Tests
+
 ```bash
 npm test
 ```
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+
+This project is licensed under the CopyLeft License – see the LICENSE file for details.
