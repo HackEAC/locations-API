@@ -1,24 +1,36 @@
 {
-  "name": "locations-API",
+  "name": "locations_api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Tanzania Locations API is a gateway that provides information about various locations in Tanzania, including regions, districts, wards, and places.",
+  "main": "./dist/server.js",
   "scripts": {
-    "dev": "node --experimental-strip-types --watch src/index.ts",
-    "dev:watch": "ts-node src/index.ts"
+    "dev": "node --experimental-strip-types --watch ./src/app.ts",
+    "build": "tsc",
+    "start": "node ./dist/server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["Tanzania", "locations", "API", "regions", "districts", "wards", "places"],
+  "author": "HackEAC",
+  "license": "copyleft",
   "packageManager": "pnpm@10.7.0",
   "dependencies": {
     "@prisma/client": "^6.6.0",
     "body-parser": "^2.2.0",
-    "express": "^5.1.0"
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/morgan": "^1.9.9",
     "@types/node": "^22.14.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "prisma": "^6.6.0",
     "typescript": "^5.8.3"
   }
