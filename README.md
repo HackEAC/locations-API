@@ -1,116 +1,132 @@
-## Description
+# Location Data API
 
-Locations API from [Tanzania locations](https://github.com/HackEAC/tanzania-locations-db) repository.
+A RESTful API for Tanzania location data including countries, regions, districts, wards, and places.
 
-Inspired by [Mtaa API](https://github.com/HackEAC/mtaaAPI/) which was
-built using python & locations from a JSON file.
+## Features
 
-This is built using Prisma, NestJs & Postgresql database.
+- Hierarchical location data with proper relationships  
+- RESTful API with clean structure  
+- Input validation and error handling  
+- Pagination and search support  
 
-## Setup
-Create file ```.env``` then copy variables in ```sample.env```
+## Tech Stack
 
-You need to provide Postgresql environment in enviroment file ```.env```
+- Node.js / Express  
+- PostgreSQL  
+- Prisma ORM  
+- Jest & Supertest for testing  
 
-## Running the app
+## Getting Started
+
+### Prerequisites
+
+- Node.js LTS  
+- [Tanzania Locations Database](https://github.com/HackEAC/tanzania-locations-db) running 🏃🏿‍♂️🏃🏿‍♀️  
+- npm or yarn  
+
+### Installation
+
+1. Clone the repository
+
+   ```bash
+   git clone https://github.com/yourusername/locations-API.git
+   cd locations-API
+   ```
+
+2. Install dependencies
+
+   ```bash
+   npm install
+   ```
+
+3. Create `.env` for your environment
+
+   ```bash
+   echo DATABASE_URL="postgresql://postgres:password@localhost:5433/locations" > .env
+   ```
+
+   The above `DATABASE_URL` is for the [Tanzania-locations-database](https://github.com/HackEAC/tanzania-locations-db) Docker container provision.
+
+4. Sync up your API with the locations database:
+
+   - **a.** Pull existing DB schema into your Prisma schema
+
+     ```bash
+     pnpx prisma db pull
+     ```
+
+   - **b.** Create migration init files
+
+     ```bash
+     mkdir prisma/migrations/init
+     ```
+
+   - **c.** Mark the current schema as baseline
+
+     ```bash
+     pnpx prisma migrate diff \
+       --from-empty \
+       --to-schema-datamodel prisma/schema.prisma \
+       --script > prisma/migrations/init/migration.sql
+     ```
+
+   - **d.** Create migration history manually
+
+     ```bash
+     pnpx prisma migrate resolve --applied init
+     ```
+
+   ✅ Now you're synced! Future `prisma migrate dev` or `migrate deploy` will work cleanly.
+
+5. Start development server
+
+   ```bash
+   npm run dev
+   ```
+
+6. Build application
+
+   ```bash
+   npm run build
+   ```
+
+7. Start production server
+
+   ```bash
+   npm run start
+   ```
+
+## API Endpoints
+
+### Countries
+- `GET /api/countries` - Get all countries
+- `GET /api/countries/:id` - Get country by ID
+
+### Regions
+- `GET /api/regions` - Get all regions
+- `GET /api/regions/:regionCode` - Get region by code
+- `GET /api/regions/:regionCode/districts` - Get districts in a region
+
+### Districts
+- `GET /api/districts` - Get all districts
+- `GET /api/districts/:districtCode` - Get district by code
+- `GET /api/districts/:districtCode/wards` - Get wards in a district
+
+### Wards
+- `GET /api/wards` - Get all wards
+- `GET /api/wards/:wardCode` - Get ward by code
+- `GET /api/wards/:wardCode/places` - Get places in a ward
+
+### Places
+- `GET /api/places` - Get all places
+- `GET /api/places/:id` - Get place by ID
+
+## Running Tests
 
 ```bash
-# install dependencies
-$ npm install
-
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm test
 ```
 
-## Access API
+## License
 
-
-You can access this API using any Http Request tool (ie. Postman, Httpie,
-curl etc)
-
-Available locations
-
-1. Countries
-
-- Get all countries
-
-    https://locations.webongo.services/countries
-
-    http://localhost:3000/countries
-
-
-2. Regions
-
-- Get all regions
-
-    https://locations.webongo.services/regions
-
-    http://localhost:3000/regions
-
-
-- Get specific region (By postcode)
-
-    https://locations.webongo.services/regions/CODE
-
-    http://locations.webongo.services/regions/CODE
-
-- Get specific region (By Name)
-
-    https://locations.webongo.services/regions/name/REGION_NAME
-
-    http://locations.webongo.services/regions/name/REGION_NAME
-
-3. The same applies to Districts, Wards & Places
-
-4. Search (POST request)
-
-    https://locations.webongo.services/search searchText=n
-
-    (n.length >= 3)
-
-5. Whatever you query by id (Regions, Districts, Wards, Places)
-    
-you get it's discending location roots using Prisma relations.
-
-
-The syntax is the same for other objects
-
-Replace `regions` with `districts`, `wards` & `places` to get the specific
-location you want.
-
-
-## Live Examples 
-
-Get all regions
-
-    curl https://locations.webongo.services/regions
-
-Get all districts
-
-    curl https://locations.webongo.services/districts
-
-Get all wards
-
-    curl https://locations.webongo.services/wards
-
-Get all places -> May be a bit slow & big bodied ;-)
-
-    curl https://locations.webongo.services/places
-
-Search a Location
-
-    curl -X POST -d 'searchText=mtakuja'
-    https://locations.webongo.services/search
-
-
-## Credits
-
-- [MTAA-API](https://github.com/HackEAC/mtaaAPI/)
-- [MTAA Python Package](https://github.com/Kalebu/mtaa)
-- [Tanzania Locations DB](https://github.com/HackEAC/tanzania-locations-db/)
+This project is licensed under the CopyLeft License – see the LICENSE file for details.

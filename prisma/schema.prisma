@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -24,72 +24,71 @@ model Countries {
 }
 
 model Districts {
-  districtName    String? @map("district_name")
-  districtCode    Int        @id @map("district_code")
-  propertiesCount Int?      @map("properties_count")
-  regionId        Int?      @map("region_id")
-  regions          Regions?   @relation(fields: [regionId], references: [regionCode])
-  wards            Wards[]
-  general_locations_id            Int?
-  general              General?   @relation("districtsTogeneral", fields: [general_locations_id], references: [id])
+  districtName         String?    @map("district_name")
+  districtCode         Int        @id @map("district_code")
+  general_locations_id Int?
+  regionId             Int?       @map("region_id")
   country_id           Int?
-  countries            Countries? @relation("countriesTodistricts", fields: [country_id], references: [id])
+  countries            Countries? @relation("countriesTodistricts", fields: [country_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  general              General?   @relation("districtsTogeneral", fields: [general_locations_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regions              Regions?   @relation(fields: [regionId], references: [regionCode], onDelete: NoAction, onUpdate: NoAction)
+  wards                Wards[]
 
   @@map("districts")
 }
 
 model Places {
-  id               Int     @id @default(autoincrement())
-  placeName       String? @map("place_name")
-  propertiesCount Int?    @map("properties_count")
-  wardId          Int    @map("ward_id")
-  ward            Wards   @relation(fields: [wardId], references: [wardCode])
-  general_locations_id       Int?
-  general         General? @relation("generalToplaces", fields: [general_locations_id], references: [id])
+  id                   Int      @id @default(autoincrement())
+  placeName            String?  @map("place_name")
+  wardId               Int?     @map("ward_id")
+  district_id          Int?
+  region_id            Int?
   country_id           Int?
+  general_locations_id Int?
+  general              General? @relation("generalToplaces", fields: [general_locations_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("places")
 }
 
 model Regions {
-  regionName        String?     @map("region_name")
-  regionCode        Int         @id   @map("region_code")
-  propertiesCount   Int?        @map("properties_count")
-  countryId         Int?        @map("country_id")
-  countries         Countries?  @relation(fields: [countryId], references: [id])
-  districts         Districts[]
-  general_locations_id         Int?        @map("general_locations_id")
-  general           General?    @relation("generalToregions", fields: [general_locations_id], references: [id])
+  regionName           String?     @map("region_name")
+  regionCode           Int         @id @map("region_code")
+  general_locations_id Int?        @map("general_locations_id")
+  countryId            Int?        @map("country_id")
+  districts            Districts[]
+  countries            Countries?  @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  general              General?    @relation("generalToregions", fields: [general_locations_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wards                Wards[]
 
   @@map("regions")
 }
 
 model Wards {
-  wardName        String?     @map("ward_name")
-  wardCode        Int        @id @map("ward_code")
-  propertiesCount Int?        @map("properties_count")
-  districtId      Int?        @map("district_id")
-  districts       Districts? @relation(fields: [districtId], references: [districtCode])
-  places          Places[]
-  general_locations_id         Int?
-  general              General?   @relation("generalTowards", fields: [general_locations_id], references: [id])
+  wardName             String?    @map("ward_name")
+  wardCode             Int        @id @map("ward_code")
+  districtId           Int?       @map("district_id")
+  region_id            Int?
   country_id           Int?
-  countries            Countries? @relation("countriesTowards", fields: [country_id], references: [id])
+  general_locations_id Int?
+  countries            Countries? @relation("countriesTowards", fields: [country_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  districts            Districts? @relation(fields: [districtId], references: [districtCode], onDelete: NoAction, onUpdate: NoAction)
+  general              General?   @relation("generalTowards", fields: [general_locations_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regions              Regions?   @relation(fields: [region_id], references: [regionCode], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("wards")
 }
 
 model General {
-  id              Int         @id
-  countryId       Int         @map("country_id") 
-  district        String
-  districtCode    Int         
-  region          String
-  regionCode      Int
-  ward            String
-  wardCode        Int
-  places          String?
-  street          String?
+  id                     Int         @id @default(autoincrement())
+  countryId              Int?        @map("country_id")
+  region                 String      @db.VarChar
+  regioncode             Int
+  district               String      @db.VarChar
+  districtcode           Int
+  ward                   String      @db.VarChar
+  wardcode               Int
+  street                 String?     @db.VarChar
+  places                 String?     @db.VarChar
   districts              Districts[] @relation("districtsTogeneral")
   places_generalToplaces Places[]    @relation("generalToplaces")
   regions                Regions[]   @relation("generalToregions")
