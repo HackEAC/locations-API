@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "Tanzania Locations API is a gateway that provides information about various locations in Tanzania, including regions, districts, wards, and places.",
   "main": "./dist/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "node --experimental-strip-types --watch ./src/app.ts",
     "generate": "prisma generate --no-engine",
