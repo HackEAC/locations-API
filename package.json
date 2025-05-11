@@ -7,7 +7,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "node --experimental-strip-types --watch ./src/app.ts",
+    "dev": "node --experimental-strip-types --watch ./server.ts",
     "generate": "prisma generate --no-engine",
     "generate:ci": "prisma generate",
     "build:ci": "npm run generate:ci && tsc --noEmit",

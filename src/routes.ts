@@ -560,5 +560,37 @@ router.get('/wards/:wardCode/places', async (req, res, next) => {
   }
 });
 
+<<<<<<< Updated upstream
+=======
+/**
+ * @route GET /api/search
+ * @description Search for places, wards, districts, regions, or countries
+ */
+
+router.get('/search', async (req, res: any, next) => {
+  try {
+    const q = req.query.q?.toString().trim();
+    if (!q || q.length < 2) {
+      return res.status(400).json({ error: 'Query too short' });
+    }
+
+    const escapedQuery = q.replace(/'/g, "''"); //- Escapes single quotes
+    const sql = `
+      SELECT id, region, district, ward, street, places, regioncode, districtcode, wardcode
+      FROM "general"
+      WHERE "search_vector" @@ plainto_tsquery('simple', $1)
+      ORDER BY ts_rank("search_vector", plainto_tsquery('simple', $1)) DESC
+      LIMIT 15;
+    `;
+
+    const results = await prisma.$queryRawUnsafe(sql, escapedQuery);
+
+    res.json({ data: results });
+  } catch (err) {
+    next(err);
+  }
+});
+
+>>>>>>> Stashed changes
 
 export default router;
