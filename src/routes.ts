@@ -574,7 +574,7 @@ router.get('/search', async (req, res: any, next) => {
 
     const escapedQuery = q.replace(/'/g, "''"); //- Escapes single quotes
     const sql = `
-      SELECT id, region, district, ward, street, places
+      SELECT id, region, district, ward, street, places, regioncode, districtcode, wardcode
       FROM "general"
       WHERE "search_vector" @@ plainto_tsquery('simple', $1)
       ORDER BY ts_rank("search_vector", plainto_tsquery('simple', $1)) DESC

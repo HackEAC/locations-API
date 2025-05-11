@@ -33,7 +33,11 @@ app.get('/health', (_: Request, res: Response) => {
   });
 });
 
-app.use('/api', routes);
+app.get('/', (_: Request, res: Response) => {
+  res.send('Its alive!');
+});
+
+app.use('/v1', routes);
 
 app.use((req, res) => {
   res.status(404).json({
