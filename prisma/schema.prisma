@@ -10,7 +10,7 @@ datasource db {
 
 model Countries {
   id        Int         @id @default(autoincrement())
-  iso       String      @db.Char(2)
+  iso       String      @unique(map: "idx_countries_iso") @db.Char(2)
   name      String
   nicename  String
   iso3      String?     @db.Char(3)
@@ -34,6 +34,9 @@ model Districts {
   regions              Regions?   @relation(fields: [regionId], references: [regionCode], onDelete: NoAction, onUpdate: NoAction)
   wards                Wards[]
 
+  @@index([country_id], map: "idx_districts_country_id")
+  @@index([general_locations_id], map: "idx_districts_general_id")
+  @@index([regionId], map: "idx_districts_region_id")
   @@map("districts")
 }
 
@@ -47,6 +50,11 @@ model Places {
   general_locations_id Int?
   general              General? @relation("generalToplaces", fields: [general_locations_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+  @@index([country_id], map: "idx_places_country_id")
+  @@index([district_id], map: "idx_places_district_id")
+  @@index([general_locations_id], map: "idx_places_general_id")
+  @@index([region_id], map: "idx_places_region_id")
+  @@index([wardId], map: "idx_places_ward_id")
   @@map("places")
 }
 
@@ -60,6 +68,8 @@ model Regions {
   general              General?    @relation("generalToregions", fields: [general_locations_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   wards                Wards[]
 
+  @@index([countryId], map: "idx_regions_country_id")
+  @@index([general_locations_id], map: "idx_regions_general_id")
   @@map("regions")
 }
 
@@ -75,24 +85,30 @@ model Wards {
   general              General?   @relation("generalTowards", fields: [general_locations_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   regions              Regions?   @relation(fields: [region_id], references: [regionCode], onDelete: NoAction, onUpdate: NoAction)
 
+  @@index([country_id], map: "idx_wards_country_id")
+  @@index([districtId], map: "idx_wards_district_id")
+  @@index([general_locations_id], map: "idx_wards_general_id")
+  @@index([region_id], map: "idx_wards_region_id")
   @@map("wards")
 }
 
 model General {
-  id                     Int         @id @default(autoincrement())
-  countryId              Int?        @map("country_id")
-  region                 String      @db.VarChar
+  id                     Int                      @id @default(autoincrement())
+  countryId              Int?                     @map("country_id")
+  region                 String                   @db.VarChar
   regioncode             Int
-  district               String      @db.VarChar
+  district               String                   @db.VarChar
   districtcode           Int
-  ward                   String      @db.VarChar
+  ward                   String                   @db.VarChar
   wardcode               Int
-  street                 String?     @db.VarChar
-  places                 String?     @db.VarChar
-  districts              Districts[] @relation("districtsTogeneral")
-  places_generalToplaces Places[]    @relation("generalToplaces")
-  regions                Regions[]   @relation("generalToregions")
-  wards                  Wards[]     @relation("generalTowards")
+  street                 String?                  @db.VarChar
+  places                 String?                  @db.VarChar
+  search_vector          Unsupported("tsvector")? @default(dbgenerated("to_tsvector('simple'::regconfig, (((((((((COALESCE(region, ''::character varying))::text || ' '::text) || (COALESCE(district, ''::character varying))::text) || ' '::text) || (COALESCE(ward, ''::character varying))::text) || ' '::text) || (COALESCE(street, ''::character varying))::text) || ' '::text) || (COALESCE(places, ''::character varying))::text))"))
+  districts              Districts[]              @relation("districtsTogeneral")
+  places_generalToplaces Places[]                 @relation("generalToplaces")
+  regions                Regions[]                @relation("generalToregions")
+  wards                  Wards[]                  @relation("generalTowards")
 
+  @@index([search_vector], map: "idx_general_search_vector", type: Gin)
   @@map("general")
 }

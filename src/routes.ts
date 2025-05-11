@@ -560,8 +560,6 @@ router.get('/wards/:wardCode/places', async (req, res, next) => {
   }
 });
 
-<<<<<<< Updated upstream
-=======
 /**
  * @route GET /api/search
  * @description Search for places, wards, districts, regions, or countries
@@ -591,6 +589,5 @@ router.get('/search', async (req, res: any, next) => {
   }
 });
 
->>>>>>> Stashed changes
 
 export default router;
