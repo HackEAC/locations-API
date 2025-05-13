@@ -99,27 +99,30 @@ A RESTful API for Tanzania location data including countries, regions, districts
 ## API Endpoints
 
 ### Countries
-- `GET /api/countries` - Get all countries
-- `GET /api/countries/:id` - Get country by ID
+- `GET /v1/countries` - Get all countries
+- `GET /v1/countries/:id` - Get country by ID
 
 ### Regions
-- `GET /api/regions` - Get all regions
-- `GET /api/regions/:regionCode` - Get region by code
-- `GET /api/regions/:regionCode/districts` - Get districts in a region
+- `GET /v1/regions` - Get all regions
+- `GET /v1/regions/:regionCode` - Get region by code
+- `GET /v1/regions/:regionCode/districts` - Get districts in a region
 
 ### Districts
-- `GET /api/districts` - Get all districts
-- `GET /api/districts/:districtCode` - Get district by code
-- `GET /api/districts/:districtCode/wards` - Get wards in a district
+- `GET /v1/districts` - Get all districts
+- `GET /v1/districts/:districtCode` - Get district by code
+- `GET /v1/districts/:districtCode/wards` - Get wards in a district
 
 ### Wards
-- `GET /api/wards` - Get all wards
-- `GET /api/wards/:wardCode` - Get ward by code
-- `GET /api/wards/:wardCode/places` - Get places in a ward
+- `GET /v1/wards` - Get all wards
+- `GET /v1/wards/:wardCode` - Get ward by code
+- `GET /v1/wards/:wardCode/places` - Get places in a ward
 
 ### Places
-- `GET /api/places` - Get all places
-- `GET /api/places/:id` - Get place by ID
+- `GET /v1/places` - Get all places
+- `GET /v1/places/:id` - Get place by ID
+
+### Search
+- `GET /v1/search?q=nzuguni` - Fulltext search for locations by name
 
 ## Running Tests
 
