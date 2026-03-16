@@ -49,7 +49,7 @@ function contains(search?: string) {
 
   return {
     contains: search,
-    mode: 'insensitive',
+    mode: 'insensitive' as const,
   };
 }
 
