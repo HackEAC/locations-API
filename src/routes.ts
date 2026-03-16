@@ -573,7 +573,7 @@ router.get('/search', cacheControl(SEARCH_CACHE), validate({ query: searchQueryS
     const { q } = req.validatedQuery;
 
     // Strip null bytes that could bypass text processing
-    const sanitised = q.replace(/\0/g, '');
+    const sanitised = String(q).replace(/\0/g, '');
 
     const results = await prisma.$queryRaw<SearchResult[]>(Prisma.sql`
       WITH query AS (
