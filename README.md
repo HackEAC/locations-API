@@ -48,12 +48,34 @@ Compatibility-first REST API for Tanzania location data backed by PostgreSQL and
 ## Useful Scripts
 
 ```bash
+pnpm db:migrate
+pnpm db:seed
 pnpm lint
 pnpm typecheck
 pnpm build
 pnpm test
+pnpm test:ci
 pnpm openapi:json
 ```
+
+## Migration Behavior
+
+- `pnpm db:migrate` is the supported entrypoint for schema changes in this repo
+- On a fresh database it bootstraps the historical `init` migration, marks that baseline as applied, and then deploys later migrations
+- On an existing database that already has the older Prisma migration history, it only applies the new additive migrations
+- Prefer `pnpm db:migrate` over calling `prisma migrate deploy` directly
+
+## Testing
+
+- `pnpm test` expects a database that has already been migrated and seeded
+- `pnpm test:ci` runs `generate`, `db:migrate`, `db:seed`, and the Jest suite in one command
+- For a clean local verification flow, run:
+
+  ```bash
+  pnpm db:migrate
+  pnpm db:seed
+  pnpm test
+  ```
 
 ## API Base Paths
 
@@ -110,12 +132,14 @@ Additional filters:
 
 - Swagger UI: `http://localhost:8080/api-docs`
 - OpenAPI JSON: `http://localhost:8080/openapi.json`
+- `pnpm openapi:json` exports the spec to `generated/openapi/openapi.json`
 
 ## Database Notes
 
 - Prisma configuration lives in [prisma.config.ts](./prisma.config.ts)
 - The checked-in migration chain now creates the `general.search_vector` column, trigger, and GIN index used by `/search`
 - Seed data is intentionally small and deterministic so CI and tests can assert exact results
+- The seed is destructive by design for local/CI fixture setup; do not run it against a database you expect to preserve unchanged
 
 ## Dependency Automation
 
