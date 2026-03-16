@@ -10,16 +10,16 @@
   "scripts": {
     "dev": "tsx watch server.ts",
     "generate": "prisma generate",
-    "db:migrate": "prisma migrate deploy",
+    "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "prisma db seed",
     "lint": "pnpm generate && eslint server.ts \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.ts\" \"prisma/**/*.ts\"",
     "typecheck": "pnpm generate && tsc --noEmit",
     "build:ci": "pnpm generate && pnpm lint && pnpm typecheck && pnpm build",
     "build": "pnpm generate && tsc -p tsconfig.build.json",
     "start": "node ./dist/server.js",
-    "test": "pnpm generate && NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
-    "test:ci": "pnpm generate && pnpm db:migrate && pnpm db:seed && NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
-    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test": "pnpm generate && node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "test:ci": "pnpm generate && pnpm db:migrate && pnpm db:seed && node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
     "openapi:json": "tsx scripts/export-openapi.ts"
   },
   "keywords": [

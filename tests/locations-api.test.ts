@@ -118,4 +118,10 @@ describe('Shared API behavior', () => {
 
     expect(imported.prisma).toBe(prisma);
   });
+
+  it('recreates the Prisma client after disconnect', async () => {
+    await disconnectPrisma();
+
+    await expect(prisma.countries.count()).resolves.toBe(2);
+  });
 });

@@ -114,7 +114,7 @@ Additional filters:
 ## Database Notes
 
 - Prisma configuration lives in [prisma.config.ts](./prisma.config.ts)
-- The baseline migration now creates the `general.search_vector` column and GIN index used by `/search`
+- The checked-in migration chain now creates the `general.search_vector` column, trigger, and GIN index used by `/search`
 - Seed data is intentionally small and deterministic so CI and tests can assert exact results
 
 ## Dependency Automation

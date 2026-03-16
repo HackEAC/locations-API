@@ -57,7 +57,7 @@ router.get('/countries', cacheControl(RESOURCE_CACHE), validate({ query: paginat
   try {
     const { limit, page, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    const where: Prisma.CountriesWhereInput = search
+    const where = search
       ? {
           OR: [{ name: contains(search) }, { nicename: contains(search) }, { iso: contains(search) }],
         }
@@ -154,7 +154,7 @@ router.get('/regions', cacheControl(RESOURCE_CACHE), validate({ query: regionsQu
   try {
     const { countryId, limit, page, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    const where: Prisma.RegionsWhereInput = {
+    const where = {
       ...(countryId ? { countryId } : {}),
       ...(search ? { regionName: contains(search) } : {}),
     };
@@ -271,7 +271,7 @@ router.get('/districts', cacheControl(RESOURCE_CACHE), validate({ query: distric
   try {
     const { countryId, limit, page, regionCode, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    const where: Prisma.DistrictsWhereInput = {
+    const where = {
       ...(countryId ? { country_id: countryId } : {}),
       ...(regionCode ? { regionId: regionCode } : {}),
       ...(search ? { districtName: contains(search) } : {}),
@@ -384,7 +384,7 @@ router.get('/wards', cacheControl(RESOURCE_CACHE), validate({ query: wardsQueryS
   try {
     const { countryId, districtCode, limit, page, regionCode, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    const where: Prisma.WardsWhereInput = {
+    const where = {
       ...(countryId ? { country_id: countryId } : {}),
       ...(districtCode ? { districtId: districtCode } : {}),
       ...(regionCode ? { region_id: regionCode } : {}),
@@ -507,7 +507,7 @@ router.get('/places', cacheControl(RESOURCE_CACHE), validate({ query: placesQuer
   try {
     const { countryId, districtCode, limit, page, regionCode, search, wardCode } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    const where: Prisma.PlacesWhereInput = {
+    const where = {
       ...(countryId ? { country_id: countryId } : {}),
       ...(districtCode ? { district_id: districtCode } : {}),
       ...(regionCode ? { region_id: regionCode } : {}),
