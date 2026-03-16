@@ -1,143 +1,198 @@
 import { Router } from 'express';
-import { validate } from './middleware/validation';
-import { prisma } from './app';
-import { ApiError } from './middleware/errorHandler';
-import { 
+import { Prisma } from './generated/prisma/client.js';
+import { prisma } from './db/prisma.js';
+import { ApiError } from './middleware/errorHandler.js';
+import { cacheControl } from './middleware/requestContext.js';
+import { validate } from './middleware/validation.js';
+import {
   codeParamSchema,
+  countryCodeParamSchema,
+  districtsQuerySchema,
   idParamSchema,
   paginationSchema,
-} from './types';
+  placesQuerySchema,
+  regionsQuerySchema,
+  searchQuerySchema,
+  wardsQuerySchema,
+} from './types.js';
 
 const router = Router();
 
-// ==================== COUNTRIES ROUTES ====================
+const RESOURCE_CACHE = 'public, max-age=300, stale-while-revalidate=60';
+const SEARCH_CACHE = 'public, max-age=60, stale-while-revalidate=30';
 
-/**
- * @route GET /api/countries
- * @description Get all countries with optional pagination and search
- */
-router.get('/countries', validate({ query: paginationSchema }), async (req, res, next) => {
+interface SearchResult {
+  id: number;
+  region: string;
+  district: string;
+  ward: string;
+  street: string | null;
+  places: string | null;
+  regioncode: number;
+  districtcode: number;
+  wardcode: number;
+}
+
+function toPagination(page: number, limit: number, total: number) {
+  return {
+    page,
+    limit,
+    total,
+    pages: Math.ceil(total / limit),
+  };
+}
+
+function contains(search?: string) {
+  if (!search) {
+    return undefined;
+  }
+
+  return {
+    contains: search,
+    mode: 'insensitive' as const,
+  };
+}
+
+router.get('/countries', cacheControl(RESOURCE_CACHE), validate({ query: paginationSchema }), async (req, res, next) => {
   try {
-    const { page, limit, search } = req.validatedQuery;
+    const { limit, page, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    const whereClause = search ? { name: { contains: search } } : {};
-    
-    const total = await prisma.countries.count({ where: whereClause });
-    
-    const countries = await prisma.countries.findMany({
-      skip,
-      take: limit,
-      where: whereClause,
-      select: {
-        id: true,
-        name: true,
-        iso: true,
-        nicename: true,
-        phonecode: true,
-        numcode: true,
-      },
-      orderBy: { name: 'asc' }
-    });
-    
+    const where: Prisma.CountriesWhereInput = search
+      ? {
+          OR: [{ name: contains(search) }, { nicename: contains(search) }, { iso: contains(search) }],
+        }
+      : {};
+
+    const [total, countries] = await Promise.all([
+      prisma.countries.count({ where }),
+      prisma.countries.findMany({
+        skip,
+        take: limit,
+        where,
+        select: {
+          id: true,
+          iso: true,
+          name: true,
+          nicename: true,
+          phonecode: true,
+          numcode: true,
+        },
+        orderBy: { name: 'asc' },
+      }),
+    ]);
+
     res.json({
       data: countries,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: toPagination(page, limit, total),
     });
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * @route GET /api/countries/:id
- * @description Get country by ID
- */
-router.get('/countries/:id', validate({ params: idParamSchema }), async (req, res, next) => {
+router.get('/countries/:id', cacheControl(RESOURCE_CACHE), validate({ params: idParamSchema }), async (req, res, next) => {
   try {
-    const countryId = req.params.id;
-    
+    const { id } = req.validatedParams;
+
     const country = await prisma.countries.findUnique({
-      where: { id: +countryId },
+      where: { id },
       select: {
         id: true,
-        name: true,
         iso: true,
+        name: true,
         nicename: true,
         phonecode: true,
-        numcode: true
-      }
+        numcode: true,
+      },
     });
-    
+
     if (!country) {
       throw new ApiError(404, 'Country not found');
     }
-    
+
     res.json({ data: country });
   } catch (error) {
     next(error);
   }
 });
 
-// ==================== REGIONS ROUTES ====================
+router.get(
+  '/countries/:countryCode/regions',
+  cacheControl(RESOURCE_CACHE),
+  validate({ params: countryCodeParamSchema }),
+  async (req, res, next) => {
+    try {
+      const { countryCode } = req.validatedParams;
 
-/**
- * @route GET /api/regions
- * @description Get all regions with pagination and optional filtering
- */
-router.get('/regions', validate({ query: paginationSchema }), async (req, res, next) => {
+      const country = await prisma.countries.findUnique({
+        where: { id: countryCode },
+        select: { id: true },
+      });
+
+      if (!country) {
+        throw new ApiError(404, 'Country not found');
+      }
+
+      const regions = await prisma.regions.findMany({
+        where: { countryId: countryCode },
+        select: {
+          regionCode: true,
+          regionName: true,
+          countryId: true,
+        },
+        orderBy: { regionName: 'asc' },
+      });
+
+      res.json({ data: regions });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.get('/regions', cacheControl(RESOURCE_CACHE), validate({ query: regionsQuerySchema }), async (req, res, next) => {
   try {
-    const { page, limit, search } = req.validatedQuery;
+    const { countryId, limit, page, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    
-    // Handle search query if present
-    const whereClause = search ? { regionName: { contains: search } } : {};
-    
-    const total = await prisma.regions.count({ where: whereClause });
-    
-    const regions = await prisma.regions.findMany({
-      skip,
-      take: limit,
-      where: whereClause,
-      select: {
-        regionCode: true,
-        regionName: true,
-        countryId: true,
-        countries: {
-          select: {
-            name: true
-          }
-        }
-      },
-      orderBy: { regionName: 'asc' }
-    });
-    
+    const where: Prisma.RegionsWhereInput = {
+      ...(countryId ? { countryId } : {}),
+      ...(search ? { regionName: contains(search) } : {}),
+    };
+
+    const [total, regions] = await Promise.all([
+      prisma.regions.count({ where }),
+      prisma.regions.findMany({
+        skip,
+        take: limit,
+        where,
+        select: {
+          regionCode: true,
+          regionName: true,
+          countryId: true,
+          countries: {
+            select: {
+              iso: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: { regionName: 'asc' },
+      }),
+    ]);
+
     res.json({
       data: regions,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: toPagination(page, limit, total),
     });
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * @route GET /api/regions/:regionCode
- * @description Get a specific region by code
- */
-router.get('/regions/:regionCode', validate({ params: codeParamSchema.pick({ regionCode: true }) }), async (req, res, next) => {
+router.get('/regions/:regionCode', cacheControl(RESOURCE_CACHE), validate({ params: codeParamSchema.pick({ regionCode: true }) }), async (req, res, next) => {
   try {
-    const regionCode = +req.params.regionCode;
-    
+    const { regionCode } = req.validatedParams;
+
     const region = await prisma.regions.findUnique({
       where: { regionCode },
       select: {
@@ -146,135 +201,117 @@ router.get('/regions/:regionCode', validate({ params: codeParamSchema.pick({ reg
         countryId: true,
         countries: {
           select: {
+            iso: true,
             name: true,
-            nicename: true
-          }
-        }
-      }
+            nicename: true,
+          },
+        },
+      },
     });
-    
-    if (!region || Object.keys(region).length === 0) {
+
+    if (!region) {
       throw new ApiError(404, 'Region not found');
     }
-    
+
     res.json({ data: region });
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * @route GET /api/regions/:regionCode/districts
- * @description Get all districts in a region
- */
-router.get('/regions/:regionCode/districts', 
-  validate({ params: codeParamSchema.pick({ regionCode: true }) }),
-  validate({ query: paginationSchema }),
+router.get(
+  '/regions/:regionCode/districts',
+  cacheControl(RESOURCE_CACHE),
+  validate({
+    params: codeParamSchema.pick({ regionCode: true }),
+    query: paginationSchema,
+  }),
   async (req, res, next) => {
     try {
-      const regionCode = +req.params.regionCode;
-      const { page, limit } = req.validatedQuery;
+      const { regionCode } = req.validatedParams;
+      const { limit, page } = req.validatedQuery;
       const skip = (page - 1) * limit;
-      
-      // Verify region exists
-      const regionExists = await prisma.regions.findUnique({
+
+      const region = await prisma.regions.findUnique({
         where: { regionCode },
-        select: { regionCode: true }
+        select: { regionCode: true },
       });
-      
-      if (!regionExists) {
+
+      if (!region) {
         throw new ApiError(404, 'Region not found');
       }
-      
-      // Get districts count
-      const total = await prisma.districts.count({
-        where: { regionId: regionCode }
-      });
-      
-      // Get districts
-      const districts = await prisma.districts.findMany({
-        where: { regionId: regionCode },
-        skip,
-        take: limit,
-        select: {
-          districtCode: true,
-          districtName: true,
-          regionId: true
-        },
-        orderBy: { districtName: 'asc' }
-      });
-      
+
+      const [total, districts] = await Promise.all([
+        prisma.districts.count({ where: { regionId: regionCode } }),
+        prisma.districts.findMany({
+          where: { regionId: regionCode },
+          skip,
+          take: limit,
+          select: {
+            districtCode: true,
+            districtName: true,
+            regionId: true,
+            country_id: true,
+          },
+          orderBy: { districtName: 'asc' },
+        }),
+      ]);
+
       res.json({
         data: districts,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit)
-        }
+        pagination: toPagination(page, limit, total),
       });
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
-// ==================== DISTRICTS ROUTES ====================
-
-/**
- * @route GET /api/districts
- * @description Get all districts with pagination and optional search
- */
-router.get('/districts', validate({ query: paginationSchema }), async (req, res, next) => {
+router.get('/districts', cacheControl(RESOURCE_CACHE), validate({ query: districtsQuerySchema }), async (req, res, next) => {
   try {
-    const { page, limit, search } = req.validatedQuery;
+    const { countryId, limit, page, regionCode, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    
-    // Handle search if present
-    const whereClause = search ? { districtName: { contains: search } } : {};
-    
-    const total = await prisma.districts.count({ where: whereClause });
-    
-    const districts = await prisma.districts.findMany({
-      skip,
-      take: limit,
-      where: whereClause,
-      select: {
-        districtCode: true,
-        districtName: true,
-        regionId: true,
-        country_id: true,
-        regions: {
-          select: {
-            regionName: true
-          }
-        }
-      },
-      orderBy: { districtName: 'asc' }
-    });
-    
+    const where: Prisma.DistrictsWhereInput = {
+      ...(countryId ? { country_id: countryId } : {}),
+      ...(regionCode ? { regionId: regionCode } : {}),
+      ...(search ? { districtName: contains(search) } : {}),
+    };
+
+    const [total, districts] = await Promise.all([
+      prisma.districts.count({ where }),
+      prisma.districts.findMany({
+        skip,
+        take: limit,
+        where,
+        select: {
+          districtCode: true,
+          districtName: true,
+          regionId: true,
+          country_id: true,
+          regions: {
+            select: {
+              regionCode: true,
+              regionName: true,
+            },
+          },
+        },
+        orderBy: { districtName: 'asc' },
+      }),
+    ]);
+
     res.json({
       data: districts,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: toPagination(page, limit, total),
     });
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * @route GET /api/districts/:districtCode
- * @description Get district by code
- */
-router.get('/districts/:districtCode', validate({ params: codeParamSchema.pick({ districtCode: true }) }), async (req, res, next) => {
+router.get('/districts/:districtCode', cacheControl(RESOURCE_CACHE), validate({ params: codeParamSchema.pick({ districtCode: true }) }), async (req, res, next) => {
   try {
-    const districtCode = +req.params.districtCode;
-    
+    const { districtCode } = req.validatedParams;
+
     const district = await prisma.districts.findUnique({
       where: { districtCode },
       select: {
@@ -284,84 +321,112 @@ router.get('/districts/:districtCode', validate({ params: codeParamSchema.pick({
         country_id: true,
         regions: {
           select: {
-            regionName: true
-          }
+            regionCode: true,
+            regionName: true,
+          },
         },
         countries: {
           select: {
-            name: true
-          }
-        }
-      }
+            iso: true,
+            name: true,
+          },
+        },
+      },
     });
-    
+
     if (!district) {
       throw new ApiError(404, 'District not found');
     }
-    
+
     res.json({ data: district });
   } catch (error) {
     next(error);
   }
 });
 
-// ==================== WARDS ROUTES ====================
+router.get(
+  '/districts/:districtCode/wards',
+  cacheControl(RESOURCE_CACHE),
+  validate({ params: codeParamSchema.pick({ districtCode: true }) }),
+  async (req, res, next) => {
+    try {
+      const { districtCode } = req.validatedParams;
 
-/**
- * @route GET /api/wards
- * @description Get all wards with pagination and search
- */
-router.get('/wards', validate({ query: paginationSchema }), async (req, res, next) => {
+      const district = await prisma.districts.findUnique({
+        where: { districtCode },
+        select: { districtCode: true },
+      });
+
+      if (!district) {
+        throw new ApiError(404, 'District not found');
+      }
+
+      const wards = await prisma.wards.findMany({
+        where: { districtId: districtCode },
+        select: {
+          wardCode: true,
+          wardName: true,
+          districtId: true,
+          region_id: true,
+          country_id: true,
+        },
+        orderBy: { wardName: 'asc' },
+      });
+
+      res.json({ data: wards });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.get('/wards', cacheControl(RESOURCE_CACHE), validate({ query: wardsQuerySchema }), async (req, res, next) => {
   try {
-    const { page, limit, search } = req.validatedQuery;
+    const { countryId, districtCode, limit, page, regionCode, search } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    
-    // Handle search if present
-    const whereClause = search ? { wardName: { contains: search } } : {};
-    
-    const total = await prisma.wards.count({ where: whereClause });
-    
-    const wards = await prisma.wards.findMany({
-      skip,
-      take: limit,
-      where: whereClause,
-      select: {
-        wardCode: true,
-        wardName: true,
-        districtId: true,
-        region_id: true,
-        country_id: true,
-        districts: {
-          select: {
-            districtName: true
-          }
-        }
-      },
-      orderBy: { wardName: 'asc' }
-    });
-    
+    const where: Prisma.WardsWhereInput = {
+      ...(countryId ? { country_id: countryId } : {}),
+      ...(districtCode ? { districtId: districtCode } : {}),
+      ...(regionCode ? { region_id: regionCode } : {}),
+      ...(search ? { wardName: contains(search) } : {}),
+    };
+
+    const [total, wards] = await Promise.all([
+      prisma.wards.count({ where }),
+      prisma.wards.findMany({
+        skip,
+        take: limit,
+        where,
+        select: {
+          wardCode: true,
+          wardName: true,
+          districtId: true,
+          region_id: true,
+          country_id: true,
+          districts: {
+            select: {
+              districtCode: true,
+              districtName: true,
+            },
+          },
+        },
+        orderBy: { wardName: 'asc' },
+      }),
+    ]);
+
     res.json({
       data: wards,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: toPagination(page, limit, total),
     });
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * @route GET /api/wards/:wardCode
- * @description Get ward by code
- */
-router.get('/wards/:wardCode', validate({ params: codeParamSchema.pick({ wardCode: true }) }), async (req, res, next) => {
+router.get('/wards/:wardCode', cacheControl(RESOURCE_CACHE), validate({ params: codeParamSchema.pick({ wardCode: true }) }), async (req, res, next) => {
   try {
-    const wardCode = +req.params.wardCode;
-    
+    const { wardCode } = req.validatedParams;
+
     const ward = await prisma.wards.findUnique({
       where: { wardCode },
       select: {
@@ -372,222 +437,153 @@ router.get('/wards/:wardCode', validate({ params: codeParamSchema.pick({ wardCod
         country_id: true,
         districts: {
           select: {
-            districtName: true
-          }
+            districtCode: true,
+            districtName: true,
+          },
         },
         regions: {
           select: {
-            regionName: true
-          }
+            regionCode: true,
+            regionName: true,
+          },
         },
         countries: {
           select: {
-            name: true
-          }
-        }
-      }
+            iso: true,
+            name: true,
+          },
+        },
+      },
     });
-    
+
     if (!ward) {
       throw new ApiError(404, 'Ward not found');
     }
-    
+
     res.json({ data: ward });
   } catch (error) {
     next(error);
   }
 });
 
-// ==================== PLACES ROUTES ====================
+router.get(
+  '/wards/:wardCode/places',
+  cacheControl(RESOURCE_CACHE),
+  validate({ params: codeParamSchema.pick({ wardCode: true }) }),
+  async (req, res, next) => {
+    try {
+      const { wardCode } = req.validatedParams;
 
-/**
- * @route GET /api/places
- * @description Get all places with pagination and search
- */
-router.get('/places', validate({ query: paginationSchema }), async (req, res, next) => {
+      const ward = await prisma.wards.findUnique({
+        where: { wardCode },
+        select: { wardCode: true },
+      });
+
+      if (!ward) {
+        throw new ApiError(404, 'Ward not found');
+      }
+
+      const places = await prisma.places.findMany({
+        where: { wardId: wardCode },
+        select: {
+          id: true,
+          placeName: true,
+          wardId: true,
+          district_id: true,
+          region_id: true,
+          country_id: true,
+        },
+        orderBy: { placeName: 'asc' },
+      });
+
+      res.json({ data: places });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.get('/places', cacheControl(RESOURCE_CACHE), validate({ query: placesQuerySchema }), async (req, res, next) => {
   try {
-    const { page, limit, search } = req.validatedQuery;
+    const { countryId, districtCode, limit, page, regionCode, search, wardCode } = req.validatedQuery;
     const skip = (page - 1) * limit;
-    
-    // Handle search if present
-    const whereClause = search ? { placeName: { contains: search } } : {};
-    
-    const total = await prisma.places.count({ where: whereClause });
-    
-    const places = await prisma.places.findMany({
-      skip,
-      take: limit,
-      where: whereClause,
-      select: {
-        id: true,
-        placeName: true,
-        wardId: true,
-        district_id: true,
-        region_id: true,
-        country_id: true
-      },
-      orderBy: { placeName: 'asc' }
-    });
-    
+    const where: Prisma.PlacesWhereInput = {
+      ...(countryId ? { country_id: countryId } : {}),
+      ...(districtCode ? { district_id: districtCode } : {}),
+      ...(regionCode ? { region_id: regionCode } : {}),
+      ...(wardCode ? { wardId: wardCode } : {}),
+      ...(search ? { placeName: contains(search) } : {}),
+    };
+
+    const [total, places] = await Promise.all([
+      prisma.places.count({ where }),
+      prisma.places.findMany({
+        skip,
+        take: limit,
+        where,
+        select: {
+          id: true,
+          placeName: true,
+          wardId: true,
+          district_id: true,
+          region_id: true,
+          country_id: true,
+        },
+        orderBy: { placeName: 'asc' },
+      }),
+    ]);
+
     res.json({
       data: places,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: toPagination(page, limit, total),
     });
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * @route GET /api/places/:id
- * @description Get place by ID
- */
-router.get('/places/:id', validate({ params: idParamSchema }), async (req, res, next) => {
+router.get('/places/:id', cacheControl(RESOURCE_CACHE), validate({ params: idParamSchema }), async (req, res, next) => {
   try {
-    const placeId = +req.params.id;
-    
+    const { id } = req.validatedParams;
+
     const place = await prisma.places.findUnique({
-      where: { id: placeId },
+      where: { id },
       select: {
         id: true,
         placeName: true,
         wardId: true,
         district_id: true,
         region_id: true,
-        country_id: true
-      }
+        country_id: true,
+      },
     });
-    
+
     if (!place) {
       throw new ApiError(404, 'Place not found');
     }
-    
+
     res.json({ data: place });
   } catch (error) {
     next(error);
   }
 });
 
-// ==================== NESTED ROUTES ====================
-
-/**
- * @route GET /api/countries/:countryCode/regions
- * @description Get all regions in a given country
- */
-router.get('/countries/:countryCode/regions', async (req, res, next) => {
+router.get('/search', cacheControl(SEARCH_CACHE), validate({ query: searchQuerySchema }), async (req, res, next) => {
   try {
-    const countryCode = Number(req.params.countryCode);
-    const regions = await prisma.regions.findMany({
-      where: { countryId: countryCode },
-      orderBy: { regionName: 'asc' }
-    });
+    const { q } = req.validatedQuery;
 
-    if(!regions || regions.length === 0) {
-      throw new ApiError(404, 'No regions found for this country');
-    }
-    res.json({ data: regions });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @route GET /api/regions/:regionCode/districts
- * @description Get all districts in a given region
- */
-router.get('/regions/:regionCode/districts', async (req, res, next) => {
-  try {
-    const regionCode = Number(req.params.regionCode);
-    const districts = await prisma.districts.findMany({
-      where: { regionId: regionCode },
-      orderBy: { districtName: 'asc' }
-    });
-
-    if(!districts || districts.length === 0) {
-      throw new ApiError(404, 'No districts found for this region');
-    }
-    res.json({ data: districts });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @route GET /api/districts/:districtCode/wards
- * @description Get all wards in a given district
- */
-router.get('/districts/:districtCode/wards', async (req, res, next) => {
-  try {
-    const districtCode = Number(req.params.districtCode);
-    const wards = await prisma.wards.findMany({
-      where: { districtId: districtCode },
-      orderBy: { wardName: 'asc' }
-    });
-
-    if(!wards || wards.length === 0) {
-      throw new ApiError(404, 'No wards found for this district');
-    }
-    res.json({ data: wards });
-  } catch (error) {
-    next(error);
-  }
-});
-
-
-/**
- * @route GET /api/wards/:wardCode/places
- * @description Get all places in a given ward
- */
-router.get('/wards/:wardCode/places', async (req, res, next) => {
-  try {
-    const wardCode = Number(req.params.wardCode);
-    const places = await prisma.places.findMany({
-      where: { wardId: wardCode },
-      orderBy: { placeName: 'asc' }
-    });
-
-    if(!places || places.length === 0) {
-      throw new ApiError(404, 'No places found for this ward');
-    }
-    res.json({ data: places });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @route GET /api/search
- * @description Search for places, wards, districts, regions, or countries
- */
-
-router.get('/search', async (req, res: any, next) => {
-  try {
-    const q = req.query.q?.toString().trim();
-    if (!q || q.length < 2) {
-      return res.status(400).json({ error: 'Query too short' });
-    }
-
-    const escapedQuery = q.replace(/'/g, "''"); //- Escapes single quotes
-    const sql = `
+    const results = await prisma.$queryRaw<SearchResult[]>(Prisma.sql`
       SELECT id, region, district, ward, street, places, regioncode, districtcode, wardcode
       FROM "general"
-      WHERE "search_vector" @@ plainto_tsquery('simple', $1)
-      ORDER BY ts_rank("search_vector", plainto_tsquery('simple', $1)) DESC
-      LIMIT 15;
-    `;
-
-    const results = await prisma.$queryRawUnsafe(sql, escapedQuery);
+      WHERE "search_vector" @@ plainto_tsquery('simple', ${q})
+      ORDER BY ts_rank("search_vector", plainto_tsquery('simple', ${q})) DESC
+      LIMIT 15
+    `);
 
     res.json({ data: results });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 });
-
 
 export default router;

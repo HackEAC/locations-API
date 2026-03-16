@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { ErrorResponse } from '../types';
+import type { ErrorResponse } from '../types.js';
 
 export class ApiError extends Error {
   statusCode: number;
@@ -15,44 +15,52 @@ export class ApiError extends Error {
 }
 
 export const errorHandler = (
-  err: Error | ApiError | ZodError, 
-  _: Request, 
-  res: Response<ErrorResponse>, 
+  err: Error | ApiError | ZodError,
+  req: Request,
+  res: Response<ErrorResponse>,
 ) => {
-  console.error(`[${new Date().toISOString()}] Error:`, err);
-  
+  console.error(
+    JSON.stringify({
+      level: 'error',
+      message: err.message,
+      name: err.name,
+      requestId: req.requestId,
+      stack: err.stack,
+    }),
+  );
+
   let statusCode = 500;
   let message = 'Something went wrong';
-  
+
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
     message = err.message;
   }
-  
+
   if (err instanceof ZodError) {
     statusCode = 400;
     message = `Validation error: ${err.errors.map(e => e.message).join(', ')}`;
   }
-  
+
   if ('code' in err && err.code === 'P2025') {
     statusCode = 404;
     message = 'Requested resource not found';
   }
-  
+
   if (err instanceof SyntaxError || err instanceof TypeError) {
     statusCode = 400;
     message = 'Invalid request data';
   }
-  
+
   const isProduction = process.env.NODE_ENV === 'production';
-  
+
   res.status(statusCode).json({
     error: {
       message,
-      ...(isProduction ? {} : { 
+      ...(isProduction ? {} : {
         stack: err.stack,
-        details: err instanceof ZodError ? err.errors : err
-      })
-    }
+        details: err instanceof ZodError ? err.errors : err,
+      }),
+    },
   });
 };

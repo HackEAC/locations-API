@@ -1,11 +1,22 @@
 import dotenv from 'dotenv';
+import { z } from 'zod';
+
 dotenv.config();
 
+const envSchema = z.object({
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  PAGE_SIZE: z.coerce.number().int().positive().max(100).default(10),
+  PORT: z.coerce.number().int().positive().default(8080),
+});
+
+const env = envSchema.parse(process.env);
+
 const config = {
-  nodeEnv: process.env.NODE_ENV || 'development',
-  port: process.env.PORT || 8080,
-  databaseUrl: process.env.DATABASE_URL,
-  pageSize: parseInt(process.env.PAGE_SIZE || '10', 10)
+  databaseUrl: env.DATABASE_URL,
+  nodeEnv: env.NODE_ENV,
+  pageSize: env.PAGE_SIZE,
+  port: env.PORT,
 };
 
 export default config;

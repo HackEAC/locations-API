@@ -1,34 +1,46 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { PrismaClient } from '@prisma/client';
-import { errorHandler } from './middleware/errorHandler';
-import { setupSwagger } from './docs/swagger';
-import routes from './routes';
+import type { Request, Response } from 'express';
+import config from './config.js';
+import { setupSwagger } from './docs/swagger.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import {
+  apiCompatibilityHeaders,
+  attachRequestContext,
+} from './middleware/requestContext.js';
+import routes from './routes.js';
 
 const app = express();
-export const prisma = new PrismaClient();
+
+morgan.token('request-id', (req) => (req as Request).requestId ?? '-');
+
+const logFormatter: morgan.FormatFn = (tokens, req, res) => {
+  return JSON.stringify({
+    contentLength: tokens.res(req, res, 'content-length') ?? '0',
+    method: tokens.method(req, res),
+    path: tokens.url(req, res),
+    requestId: tokens['request-id'](req, res),
+    responseTimeMs: Number(tokens['response-time'](req, res)),
+    status: Number(tokens.status(req, res)),
+  });
+};
 
 app.use(helmet());
 app.use(cors());
-app.use(morgan('dev'));
-
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req: Request, _: Response, next: NextFunction) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next();
-  });
-}
+app.disable('x-powered-by');
+app.use(attachRequestContext);
+app.use(morgan(logFormatter));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (_: Request, res: Response) => {
-  res.status(200).json({ 
-    status: 'UP', 
+  res.status(200).json({
+    status: 'UP',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
+    environment: config.nodeEnv,
     version: process.env.npm_package_version || '1.0.0'
   });
 });
@@ -38,6 +50,9 @@ app.get('/', (_: Request, res: Response) => {
 });
 
 app.use('/v1', routes);
+app.use('/api', apiCompatibilityHeaders, routes);
+
+setupSwagger(app);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -50,5 +65,4 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-setupSwagger(app);
 export default app;

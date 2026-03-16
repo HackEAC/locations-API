@@ -1,19 +1,52 @@
-import { z, ZodIssue } from 'zod';
+import { z } from 'zod';
+import type { ZodIssue } from 'zod';
+
+const positiveInt = z.coerce.number().int().positive();
 
 export const paginationSchema = z.object({
-  page: z.coerce.number().int().positive().optional().default(1),
-  limit: z.coerce.number().int().positive().max(100).optional().default(10),
-  search: z.string().optional(),
+  page: positiveInt.optional().default(1),
+  limit: positiveInt.max(100).optional().default(10),
+  search: z.string().trim().min(1).optional(),
 });
 
 export const idParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
+  id: positiveInt,
 });
 
 export const codeParamSchema = z.object({
-  regionCode: z.coerce.number().int().positive(),
-  districtCode: z.coerce.number().int().positive(),
-  wardCode: z.coerce.number().int().positive(),
+  regionCode: positiveInt,
+  districtCode: positiveInt,
+  wardCode: positiveInt,
+});
+
+export const countryCodeParamSchema = z.object({
+  countryCode: positiveInt,
+});
+
+export const regionsQuerySchema = paginationSchema.extend({
+  countryId: positiveInt.optional(),
+});
+
+export const districtsQuerySchema = paginationSchema.extend({
+  countryId: positiveInt.optional(),
+  regionCode: positiveInt.optional(),
+});
+
+export const wardsQuerySchema = paginationSchema.extend({
+  countryId: positiveInt.optional(),
+  districtCode: positiveInt.optional(),
+  regionCode: positiveInt.optional(),
+});
+
+export const placesQuerySchema = paginationSchema.extend({
+  countryId: positiveInt.optional(),
+  districtCode: positiveInt.optional(),
+  regionCode: positiveInt.optional(),
+  wardCode: positiveInt.optional(),
+});
+
+export const searchQuerySchema = z.object({
+  q: z.string().trim().min(2, 'Query must be at least 2 characters long'),
 });
 
 export type IdParam = z.infer<typeof idParamSchema>;
@@ -38,7 +71,7 @@ export interface ErrorResponse {
   error: {
     message: string;
     stack?: string;
-    details?: any;
+    details?: unknown;
     validationErrors?: ZodIssue[];
   };
 }
@@ -50,6 +83,7 @@ declare global {
       ReqBody = any,
       ReqQuery = any
     > {
+      requestId?: string;
       validatedQuery?: ReqQuery;
       validatedParams?: Params;
       validatedBody?: ReqBody;
