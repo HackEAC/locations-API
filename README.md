@@ -39,6 +39,8 @@ Compatibility-first REST API for Tanzania location data backed by PostgreSQL and
    pnpm db:seed
    ```
 
+   > ⚠️ **WARNING**: `pnpm db:seed` is destructive — it truncates all tables before inserting fixture data. Do not run it against a database you need to preserve.
+
 5. Start the development server.
 
    ```bash

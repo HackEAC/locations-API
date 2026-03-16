@@ -49,7 +49,7 @@ function contains(search?: string) {
 
   return {
     contains: search,
-    mode: 'insensitive' as const,
+    mode: 'insensitive',
   };
 }
 
@@ -572,11 +572,18 @@ router.get('/search', cacheControl(SEARCH_CACHE), validate({ query: searchQueryS
   try {
     const { q } = req.validatedQuery;
 
+    // Strip null bytes that could bypass text processing
+    const sanitised = q.replace(/\0/g, '');
+
     const results = await prisma.$queryRaw<SearchResult[]>(Prisma.sql`
-      SELECT id, region, district, ward, street, places, regioncode, districtcode, wardcode
-      FROM "general"
-      WHERE "search_vector" @@ plainto_tsquery('simple', ${q})
-      ORDER BY ts_rank("search_vector", plainto_tsquery('simple', ${q})) DESC
+      WITH query AS (
+        SELECT plainto_tsquery('simple', ${sanitised}::text) AS tsq
+      )
+      SELECT g.id, g.region, g.district, g.ward, g.street, g.places,
+             g.regioncode, g.districtcode, g.wardcode
+      FROM "general" g, query
+      WHERE g."search_vector" @@ query.tsq
+      ORDER BY ts_rank(g."search_vector", query.tsq) DESC
       LIMIT 15
     `);
 
