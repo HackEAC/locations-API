@@ -39,7 +39,7 @@ export const errorHandler = (
 
   if (err instanceof ZodError) {
     statusCode = 400;
-    message = `Validation error: ${err.errors.map(e => e.message).join(', ')}`;
+    message = `Validation error: ${err.issues.map(issue => issue.message).join(', ')}`;
   }
 
   if ('code' in err && err.code === 'P2025') {
@@ -59,7 +59,7 @@ export const errorHandler = (
       message,
       ...(isProduction ? {} : {
         stack: err.stack,
-        details: err instanceof ZodError ? err.errors : err,
+        details: err instanceof ZodError ? err.issues : err,
       }),
     },
   });

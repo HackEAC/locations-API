@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express';
-import { ZodSchema, ZodError } from 'zod';
+import { ZodError } from 'zod';
+import type { ZodSchema } from 'zod';
 
 export const validate = (schemas: {
   body?: ZodSchema<any>;
@@ -18,7 +19,7 @@ export const validate = (schemas: {
         res.status(400).json({
           error: {
             message: 'Validation error',
-            validationErrors: err.errors,
+            validationErrors: err.issues,
           },
         });
         return;
