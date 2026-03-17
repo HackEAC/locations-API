@@ -1,22 +1,38 @@
-import { PrismaClient } from '@prisma/client';
-import app from './src/app';
+import app from './src/app.js';
+import config from './src/config.js';
+import { disconnectPrisma } from './src/db/prisma.js';
 
-const PORT = process.env.PORT || 8080;
-const prisma = new PrismaClient();
-
-process.on('SIGINT', async () => {
-  console.log('SIGINT received. Shutting down gracefully');
-  await prisma.$disconnect();
-  process.exit(0);
+const server = app.listen(config.port, () => {
+  console.log(
+    JSON.stringify({
+      environment: config.nodeEnv,
+      message: 'Server started',
+      openApiUrl: `http://localhost:${config.port}/openapi.json`,
+      port: config.port,
+      swaggerUrl: `http://localhost:${config.port}/api-docs`,
+    }),
+  );
 });
 
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received. Shutting down gracefully');
-  await prisma.$disconnect();
-  process.exit(0);
+async function shutdown(signal: NodeJS.Signals) {
+  console.log(JSON.stringify({ message: 'Graceful shutdown requested', signal }));
+
+  server.close(() => {
+    void disconnectPrisma()
+      .then(() => {
+        process.exit(0);
+      })
+      .catch((error: unknown) => {
+        console.error(JSON.stringify({ error, message: 'Failed to disconnect Prisma cleanly' }));
+        process.exit(1);
+      });
+  });
+}
+
+process.on('SIGINT', () => {
+  void shutdown('SIGINT');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-  console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
+process.on('SIGTERM', () => {
+  void shutdown('SIGTERM');
 });

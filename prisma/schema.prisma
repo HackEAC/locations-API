@@ -1,11 +1,12 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+  engineType   = "client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Countries {
@@ -103,7 +104,7 @@ model General {
   wardcode               Int
   street                 String?                  @db.VarChar
   places                 String?                  @db.VarChar
-  search_vector          Unsupported("tsvector")? @default(dbgenerated("to_tsvector('simple'::regconfig, (((((((((COALESCE(region, ''::character varying))::text || ' '::text) || (COALESCE(district, ''::character varying))::text) || ' '::text) || (COALESCE(ward, ''::character varying))::text) || ' '::text) || (COALESCE(street, ''::character varying))::text) || ' '::text) || (COALESCE(places, ''::character varying))::text))"))
+  search_vector          Unsupported("tsvector")?
   districts              Districts[]              @relation("districtsTogeneral")
   places_generalToplaces Places[]                 @relation("generalToplaces")
   regions                Regions[]                @relation("generalToregions")

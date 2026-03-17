@@ -2,6 +2,9 @@
 /dist
 /node_modules
 /prisma/node_modules
+/src/generated
+/generated
+/coverage
 
 # Logs
 logs

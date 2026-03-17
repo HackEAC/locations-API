@@ -112,4 +112,3 @@ ALTER TABLE "wards" ADD CONSTRAINT "wards_general_locations_id_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "wards" ADD CONSTRAINT "wards_region_id_fkey" FOREIGN KEY ("region_id") REFERENCES "regions"("region_code") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
