@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 import type { ErrorResponse } from '../types.js';
 
@@ -18,7 +18,10 @@ export const errorHandler = (
   err: Error | ApiError | ZodError,
   req: Request,
   res: Response<ErrorResponse>,
+  next: NextFunction,
 ) => {
+  void next;
+
   console.error(
     JSON.stringify({
       level: 'error',
@@ -31,6 +34,16 @@ export const errorHandler = (
 
   let statusCode = 500;
   let message = 'Something went wrong';
+  const errorWithCode = err as Error & { code?: string };
+  const databaseUnavailableCodes = new Set(['P1000', 'P1001', 'P1002', 'P1017']);
+  const databaseUnavailablePatterns = [
+    /Unable to connect to the Accelerate API/i,
+    /Connection terminated due to connection timeout/i,
+    /connect ECONN/i,
+    /ECONNREFUSED/i,
+    /ENOTFOUND/i,
+    /timeout/i,
+  ];
 
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
@@ -45,6 +58,15 @@ export const errorHandler = (
   if ('code' in err && err.code === 'P2025') {
     statusCode = 404;
     message = 'Requested resource not found';
+  }
+
+  if (
+    errorWithCode.name === 'PrismaClientInitializationError' ||
+    databaseUnavailableCodes.has(errorWithCode.code ?? '') ||
+    databaseUnavailablePatterns.some((pattern) => pattern.test(err.message))
+  ) {
+    statusCode = 503;
+    message = 'Database unavailable';
   }
 
   if (err instanceof SyntaxError || err instanceof TypeError) {

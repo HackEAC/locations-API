@@ -3,6 +3,11 @@ import { Pool } from 'pg';
 import config from '../src/config.js';
 
 const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+const directDatabaseUrl = config.directDatabaseUrl;
+
+if (!directDatabaseUrl) {
+  throw new Error('db:migrate requires DIRECT_DATABASE_URL when DATABASE_URL uses Prisma Accelerate.');
+}
 
 function runPrisma(args: string[]) {
   const result = spawnSync(
@@ -21,7 +26,7 @@ function runPrisma(args: string[]) {
 
 async function bootstrapIfNeeded() {
   const pool = new Pool({
-    connectionString: config.databaseUrl,
+    connectionString: directDatabaseUrl,
   });
 
   try {

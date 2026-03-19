@@ -81,6 +81,16 @@ describe.each(['/v1', '/api'])('Tanzania Locations API (%s)', (basePath) => {
 });
 
 describe('Shared API behavior', () => {
+  it('reports database readiness on the health endpoint', async () => {
+    const res = await request(app).get('/health');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      database: 'UP',
+      status: 'UP',
+    });
+  });
+
   it('keeps the /api alias active', async () => {
     const res = await request(app).get('/api/countries');
 

@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./dist/server.js",
   "engines": {
-    "node": ">=20.19.0"
+    "node": "^22.13.0 || >=24.0.0"
   },
   "scripts": {
     "dev": "tsx watch server.ts",
@@ -37,6 +37,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
+    "@prisma/extension-accelerate": "^3.0.1",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",

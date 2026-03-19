@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import type { Request, Response } from 'express';
 import config from './config.js';
+import { checkDatabaseConnection } from './db/prisma.js';
 import { setupSwagger } from './docs/swagger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import {
@@ -36,12 +37,15 @@ app.use(morgan(logFormatter));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/health', (_: Request, res: Response) => {
-  res.status(200).json({
-    status: 'UP',
-    timestamp: new Date().toISOString(),
+app.get('/health', async (_: Request, res: Response) => {
+  const database = await checkDatabaseConnection({ logErrors: false });
+
+  res.status(database.ok ? 200 : 503).json({
+    database: database.ok ? 'UP' : 'DOWN',
     environment: config.nodeEnv,
-    version: process.env.npm_package_version || '1.0.0'
+    status: database.ok ? 'UP' : 'DEGRADED',
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
   });
 });
 
