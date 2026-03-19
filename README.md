@@ -12,7 +12,7 @@ Compatibility-first REST API for Tanzania location data backed by PostgreSQL and
 
 ## Requirements
 
-- Node.js `>=20.19.0`
+- Node.js `22.13.0+`
 - pnpm `10.7.0+`
 - PostgreSQL `16+` recommended
 
@@ -151,7 +151,7 @@ Additional filters:
 ## Dependency Automation
 
 - `.github/dependabot.yml` opens weekly update PRs for npm packages and GitHub Actions
-- `.github/workflows/ci.yml` validates every PR against Postgres on Node `20.19.0` and `22`
+- `.github/workflows/ci.yml` validates every PR against Postgres on Node `22.13.0`
 
 ## License
 
