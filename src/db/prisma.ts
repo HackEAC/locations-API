@@ -1,4 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg';
+import { withAccelerate } from '@prisma/extension-accelerate';
 import { Pool } from 'pg';
 import { PrismaClient } from '../generated/prisma/client.js';
 import config from '../config.js';
@@ -11,10 +12,46 @@ const globalForPrisma = globalThis as typeof globalThis & {
 let pool = globalForPrisma.pgPool;
 let prismaClient = globalForPrisma.prismaClient;
 
+function databaseHost() {
+  try {
+    return new URL(config.usesAccelerate ? config.databaseUrl : (config.directDatabaseUrl ?? config.databaseUrl)).hostname;
+  } catch {
+    return 'unknown';
+  }
+}
+
+function serializeError(error: unknown) {
+  if (error instanceof Error) {
+    const errorWithCode = error as Error & { code?: string };
+
+    return {
+      code: errorWithCode.code,
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  return {
+    message: String(error),
+    name: 'UnknownError',
+  };
+}
+
 function createPool() {
+  if (!config.directDatabaseUrl) {
+    throw new Error('DIRECT_DATABASE_URL is required for direct PostgreSQL connections.');
+  }
+
   return new Pool({
-    connectionString: config.databaseUrl,
+    connectionString: config.directDatabaseUrl,
   });
+}
+
+function createAcceleratedPrismaClient() {
+  return new PrismaClient({
+    accelerateUrl: config.databaseUrl,
+  }).$extends(withAccelerate()) as unknown as PrismaClient;
 }
 
 function createPrismaClient(nextPool: Pool) {
@@ -31,12 +68,17 @@ function cacheInstances() {
 }
 
 function ensurePrismaClient(): PrismaClient {
-  if (!pool) {
-    pool = createPool();
-  }
-
   if (!prismaClient) {
-    prismaClient = createPrismaClient(pool);
+    if (config.usesAccelerate) {
+      prismaClient = createAcceleratedPrismaClient();
+    } else {
+      if (!pool) {
+        pool = createPool();
+      }
+
+      prismaClient = createPrismaClient(pool);
+    }
+
     cacheInstances();
   }
 
@@ -54,6 +96,31 @@ export const prisma = new Proxy({} as PrismaClient, {
 
 if (pool && prismaClient && config.nodeEnv !== 'production') {
   cacheInstances();
+}
+
+export async function checkDatabaseConnection(options: { logErrors?: boolean } = {}) {
+  const { logErrors = true } = options;
+
+  try {
+    await ensurePrismaClient().$queryRawUnsafe('SELECT 1');
+    return { ok: true } as const;
+  } catch (error) {
+    if (logErrors) {
+      console.error(
+        JSON.stringify({
+          databaseHost: databaseHost(),
+          error: serializeError(error),
+          level: 'error',
+          message: 'Database connectivity check failed',
+        }),
+      );
+    }
+
+    return {
+      error: serializeError(error),
+      ok: false,
+    } as const;
+  }
 }
 
 export async function disconnectPrisma() {
