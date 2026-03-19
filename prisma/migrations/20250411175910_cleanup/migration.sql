@@ -14,19 +14,19 @@
 
 */
 -- AlterTable
-ALTER TABLE "districts" DROP COLUMN "properties_count",
-DROP COLUMN "view_count",
-DROP COLUMN "watcher_count";
+ALTER TABLE "districts" DROP COLUMN IF EXISTS "properties_count",
+DROP COLUMN IF EXISTS "view_count",
+DROP COLUMN IF EXISTS "watcher_count";
 
 -- AlterTable
-ALTER TABLE "places" DROP COLUMN "properties_count",
-DROP COLUMN "view_count";
+ALTER TABLE "places" DROP COLUMN IF EXISTS "properties_count",
+DROP COLUMN IF EXISTS "view_count";
 
 -- AlterTable
-ALTER TABLE "regions" DROP COLUMN "properties_count",
-DROP COLUMN "view_count",
-DROP COLUMN "watcher_count";
+ALTER TABLE "regions" DROP COLUMN IF EXISTS "properties_count",
+DROP COLUMN IF EXISTS "view_count",
+DROP COLUMN IF EXISTS "watcher_count";
 
 -- AlterTable
-ALTER TABLE "wards" DROP COLUMN "properties_count",
-DROP COLUMN "view_count";
+ALTER TABLE "wards" DROP COLUMN IF EXISTS "properties_count",
+DROP COLUMN IF EXISTS "view_count";

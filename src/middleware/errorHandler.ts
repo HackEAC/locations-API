@@ -18,8 +18,10 @@ export const errorHandler = (
   err: Error | ApiError | ZodError,
   req: Request,
   res: Response<ErrorResponse>,
-  _: NextFunction,
+  next: NextFunction,
 ) => {
+  void next;
+
   console.error(
     JSON.stringify({
       level: 'error',
