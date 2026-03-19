@@ -153,6 +153,12 @@ Additional filters:
 - `.github/dependabot.yml` opens weekly update PRs for npm packages and GitHub Actions
 - `.github/workflows/ci.yml` validates every PR against Postgres on Node `22.13.0`
 
+## Git Hooks
+
+- `pnpm prepare` and `pnpm hooks:install` configure `core.hooksPath` to `.githooks`
+- Pre-commit runs `pnpm hooks:pre-commit` (`lint` + `typecheck`)
+- Pre-push runs `pnpm hooks:pre-push`, which creates a temporary Postgres database and runs `pnpm test:ci`
+- Pre-push requires `DIRECT_DATABASE_URL` to be a direct PostgreSQL URL
 ## License
 
 This project is licensed under the CopyLeft License. See [LICENSE](./LICENSE).

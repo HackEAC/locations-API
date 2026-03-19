@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+if [ "${SKIP_GIT_HOOKS:-0}" = "1" ]; then
+  exit 0
+fi
+
+pnpm hooks:pre-push
