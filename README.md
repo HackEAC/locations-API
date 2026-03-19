@@ -157,7 +157,7 @@ Additional filters:
 
 - `pnpm prepare` and `pnpm hooks:install` configure `core.hooksPath` to `.githooks`
 - Pre-commit runs `pnpm hooks:pre-commit` (`lint` + `typecheck`)
-- Pre-push runs `pnpm hooks:pre-push`, which creates a temporary Postgres database and runs `pnpm test:ci`
+- Pre-push runs `pnpm hooks:pre-push`, which first builds the app, then creates a temporary Postgres database and runs `pnpm test:ci`
 - Pre-push requires `DIRECT_DATABASE_URL` to be a direct PostgreSQL URL
 ## License
 

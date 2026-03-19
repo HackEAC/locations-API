@@ -15,7 +15,7 @@
     "db:seed": "prisma db seed",
     "hooks:install": "tsx scripts/install-git-hooks.ts",
     "hooks:pre-commit": "pnpm lint && pnpm typecheck",
-    "hooks:pre-push": "tsx scripts/run-pre-push-checks.ts",
+    "hooks:pre-push": "pnpm build && tsx scripts/run-pre-push-checks.ts",
     "lint": "pnpm generate && eslint server.ts \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/**/*.ts\" \"prisma/**/*.ts\"",
     "typecheck": "pnpm generate && tsc --noEmit",
     "build:ci": "pnpm generate && pnpm lint && pnpm typecheck && pnpm build",
