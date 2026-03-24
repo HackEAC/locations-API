@@ -19,10 +19,6 @@ const env = envSchema.parse(process.env);
 const usesAccelerate = isAccelerateUrl(env.DATABASE_URL);
 const directDatabaseUrl = env.DIRECT_DATABASE_URL ?? (usesAccelerate ? undefined : env.DATABASE_URL);
 
-if (env.NODE_ENV === 'production' && !usesAccelerate) {
-  throw new Error('Production requires DATABASE_URL to be a Prisma Accelerate URL.');
-}
-
 if (env.NODE_ENV !== 'production' && !directDatabaseUrl) {
   throw new Error('Non-production requires a direct PostgreSQL URL via DIRECT_DATABASE_URL or DATABASE_URL.');
 }
