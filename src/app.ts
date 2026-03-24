@@ -7,6 +7,7 @@ import config from './config.js';
 import { checkDatabaseConnection } from './db/prisma.js';
 import { setupSwagger } from './docs/swagger.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { createRateLimiter } from './middleware/rateLimit.js';
 import {
   apiCompatibilityHeaders,
   attachRequestContext,
@@ -14,6 +15,14 @@ import {
 import routes from './routes.js';
 
 const app = express();
+const apiRateLimiter = createRateLimiter({
+  ...config.rateLimit,
+  name: 'api',
+});
+const searchRateLimiter = createRateLimiter({
+  ...config.searchRateLimit,
+  name: 'search',
+});
 
 morgan.token('request-id', (req) => (req as Request).requestId ?? '-');
 
@@ -34,8 +43,11 @@ app.disable('x-powered-by');
 app.use(attachRequestContext);
 app.use(morgan(logFormatter));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: config.requestBodyLimit }));
+app.use(express.urlencoded({ extended: true, limit: config.requestBodyLimit }));
+
+app.use(['/v1', '/api', '/openapi.json', '/api-docs'], apiRateLimiter);
+app.use(['/v1/search', '/api/search'], searchRateLimiter);
 
 app.get('/health', async (_: Request, res: Response) => {
   const database = await checkDatabaseConnection({ logErrors: false });

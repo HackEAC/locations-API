@@ -64,6 +64,25 @@ pnpm test:ci
 pnpm openapi:json
 ```
 
+## Runtime Protection
+
+- API routes are protected by per-IP rate limits with both sustained and burst thresholds
+- `/search` has a stricter limit than the rest of the API because it is the easiest expensive endpoint to abuse
+- Request bodies are capped with `REQUEST_BODY_LIMIT`, even though the public API is mostly read-only
+- All limits are configurable with environment variables:
+
+  ```bash
+  REQUEST_BODY_LIMIT=16kb
+  RATE_LIMIT_WINDOW_MS=60000
+  RATE_LIMIT_MAX_REQUESTS=120
+  RATE_LIMIT_BURST_WINDOW_MS=10000
+  RATE_LIMIT_BURST_MAX_REQUESTS=30
+  SEARCH_RATE_LIMIT_WINDOW_MS=60000
+  SEARCH_RATE_LIMIT_MAX_REQUESTS=30
+  SEARCH_RATE_LIMIT_BURST_WINDOW_MS=10000
+  SEARCH_RATE_LIMIT_BURST_MAX_REQUESTS=10
+  ```
+
 ## Migration Behavior
 
 - `pnpm db:migrate` is the supported entrypoint for schema changes in this repo

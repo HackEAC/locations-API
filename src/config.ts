@@ -13,6 +13,15 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PAGE_SIZE: z.coerce.number().int().positive().max(100).default(10),
   PORT: z.coerce.number().int().positive().default(8080),
+  REQUEST_BODY_LIMIT: z.string().trim().min(1).default('16kb'),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(120),
+  RATE_LIMIT_BURST_WINDOW_MS: z.coerce.number().int().positive().default(10_000),
+  RATE_LIMIT_BURST_MAX_REQUESTS: z.coerce.number().int().positive().default(30),
+  SEARCH_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  SEARCH_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(30),
+  SEARCH_RATE_LIMIT_BURST_WINDOW_MS: z.coerce.number().int().positive().default(10_000),
+  SEARCH_RATE_LIMIT_BURST_MAX_REQUESTS: z.coerce.number().int().positive().default(10),
 });
 
 const env = envSchema.parse(process.env);
@@ -29,6 +38,19 @@ const config = {
   nodeEnv: env.NODE_ENV,
   pageSize: env.PAGE_SIZE,
   port: env.PORT,
+  requestBodyLimit: env.REQUEST_BODY_LIMIT,
+  rateLimit: {
+    burstMaxRequests: env.RATE_LIMIT_BURST_MAX_REQUESTS,
+    burstWindowMs: env.RATE_LIMIT_BURST_WINDOW_MS,
+    maxRequests: env.RATE_LIMIT_MAX_REQUESTS,
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+  },
+  searchRateLimit: {
+    burstMaxRequests: env.SEARCH_RATE_LIMIT_BURST_MAX_REQUESTS,
+    burstWindowMs: env.SEARCH_RATE_LIMIT_BURST_WINDOW_MS,
+    maxRequests: env.SEARCH_RATE_LIMIT_MAX_REQUESTS,
+    windowMs: env.SEARCH_RATE_LIMIT_WINDOW_MS,
+  },
   usesAccelerate,
 };
 
