@@ -33,8 +33,8 @@ Compatibility-first REST API for Tanzania location data backed by PostgreSQL and
 3. Start PostgreSQL and update your connection strings if needed.
 
    - Local and test environments use a direct PostgreSQL `DATABASE_URL`.
-   - Production uses a Prisma Accelerate `DATABASE_URL`.
-   - If you run `pnpm db:migrate` against an Accelerate-backed environment, also provide `DIRECT_DATABASE_URL` so the migration bootstrap can talk to Postgres directly.
+   - Production can use either a direct PostgreSQL `DATABASE_URL` or a Prisma Accelerate `DATABASE_URL`.
+   - If `DATABASE_URL` points at Prisma Accelerate, also provide `DIRECT_DATABASE_URL` so migrations can talk to Postgres directly.
 
 4. Apply the checked-in schema and seed deterministic fixture data.
 
@@ -70,7 +70,8 @@ pnpm openapi:json
 - On a fresh database it bootstraps the historical `init` migration, marks that baseline as applied, and then deploys later migrations
 - On an existing database that already has the older Prisma migration history, it only applies the new additive migrations
 - Prefer `pnpm db:migrate` over calling `prisma migrate deploy` directly
-- `DATABASE_URL` may point at Prisma Accelerate in production, but `pnpm db:migrate` still requires a direct Postgres URL in `DIRECT_DATABASE_URL`
+- `DATABASE_URL` may point at direct Postgres or Prisma Accelerate
+- If `DATABASE_URL` points at Prisma Accelerate, `pnpm db:migrate` still requires a direct Postgres URL in `DIRECT_DATABASE_URL`
 
 ## Testing
 
