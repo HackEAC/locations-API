@@ -6,7 +6,7 @@ const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const directDatabaseUrl = config.directDatabaseUrl;
 
 if (!directDatabaseUrl) {
-  throw new Error('db:migrate requires DIRECT_DATABASE_URL when DATABASE_URL uses Prisma Accelerate.');
+  throw new Error('db:migrate requires DIRECT_DATABASE_URL or legacy DIRECT_URL when DATABASE_URL uses Prisma Accelerate.');
 }
 
 function runPrisma(args: string[]) {

@@ -35,6 +35,7 @@ Compatibility-first REST API for Tanzania location data backed by PostgreSQL and
    - Local and test environments use a direct PostgreSQL `DATABASE_URL`.
    - Production can use either a direct PostgreSQL `DATABASE_URL` or a Prisma Accelerate `DATABASE_URL`.
    - If `DATABASE_URL` points at Prisma Accelerate, also provide `DIRECT_DATABASE_URL` so migrations can talk to Postgres directly.
+   - Legacy environments that already use `DIRECT_URL` are still accepted as a fallback for direct Postgres access.
 
 4. Apply the checked-in schema and seed deterministic fixture data.
 
@@ -64,6 +65,27 @@ pnpm test:ci
 pnpm openapi:json
 ```
 
+## Runtime Protection
+
+- API routes are protected by per-IP rate limits with both sustained and burst thresholds
+- `/search` has a stricter limit than the rest of the API because it is the easiest expensive endpoint to abuse
+- Request bodies are capped with `REQUEST_BODY_LIMIT`, even though the public API is mostly read-only
+- Rate limiting keys off Express `req.ip`; if you deploy behind a trusted proxy/load balancer, set `TRUST_PROXY` so Express resolves the real client IP correctly
+- All limits are configurable with environment variables:
+
+  ```bash
+  REQUEST_BODY_LIMIT=16kb
+  TRUST_PROXY="loopback, linklocal, uniquelocal"
+  RATE_LIMIT_WINDOW_MS=60000
+  RATE_LIMIT_MAX_REQUESTS=120
+  RATE_LIMIT_BURST_WINDOW_MS=10000
+  RATE_LIMIT_BURST_MAX_REQUESTS=30
+  SEARCH_RATE_LIMIT_WINDOW_MS=60000
+  SEARCH_RATE_LIMIT_MAX_REQUESTS=30
+  SEARCH_RATE_LIMIT_BURST_WINDOW_MS=10000
+  SEARCH_RATE_LIMIT_BURST_MAX_REQUESTS=10
+  ```
+
 ## Migration Behavior
 
 - `pnpm db:migrate` is the supported entrypoint for schema changes in this repo
@@ -72,6 +94,7 @@ pnpm openapi:json
 - Prefer `pnpm db:migrate` over calling `prisma migrate deploy` directly
 - `DATABASE_URL` may point at direct Postgres or Prisma Accelerate
 - If `DATABASE_URL` points at Prisma Accelerate, `pnpm db:migrate` still requires a direct Postgres URL in `DIRECT_DATABASE_URL`
+- `DIRECT_URL` remains supported as a legacy alias for `DIRECT_DATABASE_URL`
 
 ## Testing
 
@@ -154,6 +177,13 @@ Additional filters:
 - `.github/dependabot.yml` opens weekly update PRs for npm packages and GitHub Actions
 - `.github/workflows/ci.yml` validates every PR against Postgres on Node `22.13.0`
 
+## Git Hooks
+
+- `pnpm prepare` and `pnpm hooks:install` configure `core.hooksPath` to `.githooks`
+- Pre-commit runs `pnpm hooks:pre-commit` (`lint` + `typecheck`)
+- Pre-push runs `pnpm hooks:pre-push`, which first builds the app, then creates a temporary Postgres database and runs `pnpm test:ci`
+- Pre-push requires `DIRECT_DATABASE_URL` or legacy `DIRECT_URL` to be a direct PostgreSQL URL
+- Pre-push refuses non-local databases by default; set `ALLOW_REMOTE_PREPUSH_DB=1` only if you intentionally want hook verification against a remote direct Postgres instance
 ## License
 
 This project is licensed under the CopyLeft License. See [LICENSE](./LICENSE).
