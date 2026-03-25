@@ -24,6 +24,8 @@ const searchRateLimiter = createRateLimiter({
   name: 'search',
 });
 
+app.set('trust proxy', config.trustProxy);
+
 morgan.token('request-id', (req) => (req as Request).requestId ?? '-');
 
 const logFormatter: morgan.FormatFn = (tokens, req, res) => {

@@ -69,10 +69,12 @@ pnpm openapi:json
 - API routes are protected by per-IP rate limits with both sustained and burst thresholds
 - `/search` has a stricter limit than the rest of the API because it is the easiest expensive endpoint to abuse
 - Request bodies are capped with `REQUEST_BODY_LIMIT`, even though the public API is mostly read-only
+- Rate limiting keys off Express `req.ip`; if you deploy behind a trusted proxy/load balancer, set `TRUST_PROXY` so Express resolves the real client IP correctly
 - All limits are configurable with environment variables:
 
   ```bash
   REQUEST_BODY_LIMIT=16kb
+  TRUST_PROXY="loopback, linklocal, uniquelocal"
   RATE_LIMIT_WINDOW_MS=60000
   RATE_LIMIT_MAX_REQUESTS=120
   RATE_LIMIT_BURST_WINDOW_MS=10000

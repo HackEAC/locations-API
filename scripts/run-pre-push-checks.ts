@@ -1,14 +1,17 @@
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import dotenv from 'dotenv';
 import { Pool } from 'pg';
 
 const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
+dotenv.config();
+
 function resolveDirectDatabaseUrl() {
-  const candidate = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL;
+  const candidate = process.env.DIRECT_DATABASE_URL;
 
   if (!candidate) {
-    throw new Error('Set DIRECT_DATABASE_URL to a direct PostgreSQL connection before pushing.');
+    throw new Error('Set DIRECT_DATABASE_URL in your shell or .env before pushing.');
   }
 
   if (candidate.startsWith('prisma://') || candidate.startsWith('prisma+postgres://')) {

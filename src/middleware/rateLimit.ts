@@ -19,17 +19,6 @@ interface RateLimitOptions {
 }
 
 function clientAddress(req: Request) {
-  const cloudflareIp = req.header('cf-connecting-ip')?.trim();
-  const forwardedFor = req.header('x-forwarded-for')?.split(',')[0]?.trim();
-
-  if (cloudflareIp) {
-    return cloudflareIp;
-  }
-
-  if (forwardedFor) {
-    return forwardedFor;
-  }
-
   return req.ip || req.socket.remoteAddress || 'unknown';
 }
 

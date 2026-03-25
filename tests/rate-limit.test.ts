@@ -82,4 +82,37 @@ describe('rate limiting middleware', () => {
     expect(healthRes.statusCode).toBe(200);
     expect(limitedRes.statusCode).toBe(429);
   });
+
+  it('does not trust spoofed forwarded headers by default', async () => {
+    const app = createTestApp(createRateLimiter({
+      maxRequests: 1,
+      name: 'spoof-test',
+      windowMs: 60_000,
+    }));
+
+    await request(app).get('/limited').set('x-forwarded-for', '203.0.113.10');
+    const res = await request(app).get('/limited').set('x-forwarded-for', '198.51.100.25');
+
+    expect(res.statusCode).toBe(429);
+  });
+
+  it('uses forwarded client IPs when Express trust proxy is enabled', async () => {
+    const app = express();
+
+    app.set('trust proxy', true);
+    app.use(createRateLimiter({
+      maxRequests: 1,
+      name: 'trusted-proxy-test',
+      windowMs: 60_000,
+    }));
+    app.get('/limited', (_req, res) => {
+      res.json({ ok: true });
+    });
+
+    const first = await request(app).get('/limited').set('x-forwarded-for', '203.0.113.10');
+    const second = await request(app).get('/limited').set('x-forwarded-for', '198.51.100.25');
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(200);
+  });
 });
