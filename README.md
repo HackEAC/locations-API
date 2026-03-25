@@ -35,6 +35,7 @@ Compatibility-first REST API for Tanzania location data backed by PostgreSQL and
    - Local and test environments use a direct PostgreSQL `DATABASE_URL`.
    - Production can use either a direct PostgreSQL `DATABASE_URL` or a Prisma Accelerate `DATABASE_URL`.
    - If `DATABASE_URL` points at Prisma Accelerate, also provide `DIRECT_DATABASE_URL` so migrations can talk to Postgres directly.
+   - Legacy environments that already use `DIRECT_URL` are still accepted as a fallback for direct Postgres access.
 
 4. Apply the checked-in schema and seed deterministic fixture data.
 
@@ -93,6 +94,7 @@ pnpm openapi:json
 - Prefer `pnpm db:migrate` over calling `prisma migrate deploy` directly
 - `DATABASE_URL` may point at direct Postgres or Prisma Accelerate
 - If `DATABASE_URL` points at Prisma Accelerate, `pnpm db:migrate` still requires a direct Postgres URL in `DIRECT_DATABASE_URL`
+- `DIRECT_URL` remains supported as a legacy alias for `DIRECT_DATABASE_URL`
 
 ## Testing
 
@@ -180,7 +182,7 @@ Additional filters:
 - `pnpm prepare` and `pnpm hooks:install` configure `core.hooksPath` to `.githooks`
 - Pre-commit runs `pnpm hooks:pre-commit` (`lint` + `typecheck`)
 - Pre-push runs `pnpm hooks:pre-push`, which first builds the app, then creates a temporary Postgres database and runs `pnpm test:ci`
-- Pre-push requires `DIRECT_DATABASE_URL` to be a direct PostgreSQL URL
+- Pre-push requires `DIRECT_DATABASE_URL` or legacy `DIRECT_URL` to be a direct PostgreSQL URL
 ## License
 
 This project is licensed under the CopyLeft License. See [LICENSE](./LICENSE).

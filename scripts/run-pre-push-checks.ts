@@ -8,14 +8,14 @@ const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 dotenv.config();
 
 function resolveDirectDatabaseUrl() {
-  const candidate = process.env.DIRECT_DATABASE_URL;
+  const candidate = process.env.DIRECT_DATABASE_URL ?? process.env.DIRECT_URL;
 
   if (!candidate) {
-    throw new Error('Set DIRECT_DATABASE_URL in your shell or .env before pushing.');
+    throw new Error('Set DIRECT_DATABASE_URL or legacy DIRECT_URL in your shell or .env before pushing.');
   }
 
   if (candidate.startsWith('prisma://') || candidate.startsWith('prisma+postgres://')) {
-    throw new Error('Pre-push checks require DIRECT_DATABASE_URL to point at direct PostgreSQL, not Prisma Accelerate.');
+    throw new Error('Pre-push checks require DIRECT_DATABASE_URL or DIRECT_URL to point at direct PostgreSQL, not Prisma Accelerate.');
   }
 
   return new URL(candidate);

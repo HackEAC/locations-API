@@ -40,7 +40,7 @@ function serializeError(error: unknown) {
 
 function createPool() {
   if (!config.directDatabaseUrl) {
-    throw new Error('DIRECT_DATABASE_URL is required for direct PostgreSQL connections.');
+    throw new Error('DIRECT_DATABASE_URL or legacy DIRECT_URL is required for direct PostgreSQL connections.');
   }
 
   return new Pool({
