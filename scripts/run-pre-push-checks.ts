@@ -21,6 +21,10 @@ function resolveDirectDatabaseUrl() {
   return new URL(candidate);
 }
 
+function isLocalDatabaseHost(hostname: string) {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+}
+
 function tempDatabaseUrl(baseUrl: URL, databaseName: string) {
   const next = new URL(baseUrl.toString());
   next.pathname = `/${databaseName}`;
@@ -67,6 +71,11 @@ async function dropTemporaryDatabase(pool: Pool, databaseName: string) {
 
 async function main() {
   const directUrl = resolveDirectDatabaseUrl();
+
+  if (!isLocalDatabaseHost(directUrl.hostname) && process.env.ALLOW_REMOTE_PREPUSH_DB !== '1') {
+    throw new Error('Pre-push checks refuse to use non-local databases by default. Set ALLOW_REMOTE_PREPUSH_DB=1 if you really want that.');
+  }
+
   const originalDatabase = directUrl.pathname.replace(/^\//, '') || 'locations_api';
   const tempDatabaseName = `${originalDatabase}_prepush_${randomUUID().replace(/-/g, '').slice(0, 8)}`;
   const isolatedDatabaseUrl = tempDatabaseUrl(directUrl, tempDatabaseName);

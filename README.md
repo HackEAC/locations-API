@@ -183,6 +183,7 @@ Additional filters:
 - Pre-commit runs `pnpm hooks:pre-commit` (`lint` + `typecheck`)
 - Pre-push runs `pnpm hooks:pre-push`, which first builds the app, then creates a temporary Postgres database and runs `pnpm test:ci`
 - Pre-push requires `DIRECT_DATABASE_URL` or legacy `DIRECT_URL` to be a direct PostgreSQL URL
+- Pre-push refuses non-local databases by default; set `ALLOW_REMOTE_PREPUSH_DB=1` only if you intentionally want hook verification against a remote direct Postgres instance
 ## License
 
 This project is licensed under the CopyLeft License. See [LICENSE](./LICENSE).
