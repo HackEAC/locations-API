@@ -56,7 +56,7 @@ function createAcceleratedPrismaClient() {
 
 function createPrismaClient(nextPool: Pool) {
   return new PrismaClient({
-    adapter: new PrismaPg(nextPool as unknown as ConstructorParameters<typeof PrismaPg>[0]),
+    adapter: new PrismaPg(nextPool),
   });
 }
 
@@ -87,7 +87,7 @@ function ensurePrismaClient(): PrismaClient {
 
 export const prisma = new Proxy({} as PrismaClient, {
   get(_, property, receiver) {
-    return Reflect.get(ensurePrismaClient() as object, property, receiver) as unknown;
+    return Reflect.get(ensurePrismaClient(), property, receiver) as unknown;
   },
   set(_, property, value, receiver) {
     return Reflect.set(ensurePrismaClient() as object, property, value, receiver);
